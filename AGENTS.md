@@ -27,7 +27,7 @@ python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 ## Repository Areas
 
 ```text
-gateway_modules/     — Harness 合规模块
+gateway_modules/     — Harness 模块（safety/silence/exit/timer/identity/emergency/conversation/observability/harness_manager）
 cradle_memory/       — LanceDB 记忆系统（Phase 4）
 cradle_training/     — 训练游戏引擎（Phase 5）
 config/              — System Prompt 配置

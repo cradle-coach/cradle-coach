@@ -16,12 +16,12 @@ jobs:
             const labels = [];
 
             if (title.includes('phase 0') || title.includes('环境搭建')) labels.push('phase/0');
-            else if (title.includes('phase 1') || title.includes('system prompt')) labels.push('phase/1');
-            else if (title.includes('phase 2') || title.includes('安全护栏')) labels.push('phase/2');
-            else if (title.includes('phase 3') || title.includes('沉默') || title.includes('退出')) labels.push('phase/3');
-            else if (title.includes('phase 4') || title.includes('记忆')) labels.push('phase/4');
-            else if (title.includes('phase 5') || title.includes('训练')) labels.push('phase/5');
-            else if (title.includes('phase 6') || title.includes('昇腾')) labels.push('phase/6');
+            if (title.includes('phase 1') || title.includes('system prompt')) labels.push('phase/1');
+            if (title.includes('phase 2') || title.includes('安全护栏')) labels.push('phase/2');
+            if (title.includes('phase 3') || title.includes('沉默') || title.includes('退出')) labels.push('phase/3');
+            if (title.includes('phase 4') || title.includes('记忆')) labels.push('phase/4');
+            if (title.includes('phase 5') || title.includes('训练')) labels.push('phase/5');
+            if (title.includes('phase 6') || title.includes('昇腾')) labels.push('phase/6');
 
             if (labels.length > 0) {
               await github.rest.issues.addLabels({

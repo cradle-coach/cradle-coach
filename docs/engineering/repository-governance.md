@@ -38,7 +38,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 1. 确认 GitHub Issue 已存在
 2. 创建 `.claude/issue-state/<issue-number>-<name>.md`
-3. `git checkout -b feature/<issue-number>-<name> upstream/main`
+3. `git checkout -b feature/<issue-number>-<short-name> upstream/main`
 4. 开发 → 测试 → commit
 5. `git push origin feature/<issue-number>-<name>`
 6. 创建 PR 到 `upstream/main`
