@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before stopping: if there are uncommitted changes in the working tree, run `/code-review` on the diff. Report findings. If findings are clean, commit the changes with a conventional commit message. If there are issues, fix them before stopping."
+          }
+        ]
+      }
+    ]
+  }
+}
