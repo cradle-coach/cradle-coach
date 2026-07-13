@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -n \"$(git -C /workspace/cradle-coach status --porcelain 2>/dev/null)\" ]; then echo 'Uncommitted changes detected. Consider running /review before stopping.'; fi"
+            "command": "if [ -n \"$(git -C /workspace/02-projects/active/owned/cradle-coach status --porcelain 2>/dev/null)\" ]; then echo 'Uncommitted changes detected. Consider running /review before stopping.'; fi"
           }
         ]
       }
