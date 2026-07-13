@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.venv/
+venv/
+
+# MiniCPM-o-Demo 运行时
+minicpmo-demo/minicpmo45_service/config.json
+minicpmo-demo/minicpmo45_service/models/
+
+# Harness 日志（运行时生成）
+harness_logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 环境变量
+.env
+.env.local

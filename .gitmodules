@@ -1,0 +1,3 @@
+[submodule "minicpmo-demo"]
+	path = minicpmo-demo
+	url = https://github.com/OpenBMB/MiniCPM-o-Demo.git

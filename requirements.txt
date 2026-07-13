@@ -1,0 +1,13 @@
+# CradleCoach Harness 依赖
+
+# 核心推理（继承自 MiniCPM-o-Demo）
+# 详见 minicpmo-demo/minicpmo45_service/requirements.txt
+
+# 记忆系统
+lancedb>=0.6.0
+
+# 训练引擎
+# (待 Phase 5 实现)
+
+# 开发工具
+pytest>=8.0.0
