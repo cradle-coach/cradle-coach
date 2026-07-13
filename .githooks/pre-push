@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+main_branch="main"
+
+current_branch="$(git branch --show-current 2>/dev/null || true)"
+
+# Block direct pushes to main
+if [[ "$current_branch" == "$main_branch" ]]; then
+  echo "Push blocked: direct push to '$main_branch' is not allowed."
+  echo "Create a feature branch and open a PR instead."
+  exit 1
+fi
+
+# Run tests
+echo "Running compliance regression tests..."
+cd "$repo_root"
+if python3 -m pytest tests/ -q 2>&1; then
+  echo "All tests passed."
+else
+  echo "Tests failed. Push blocked."
+  exit 1
+fi

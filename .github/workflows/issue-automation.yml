@@ -1,0 +1,33 @@
+name: Issue Automation
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const title = issue.title.toLowerCase();
+            const labels = [];
+
+            if (title.includes('phase 0') || title.includes('环境搭建')) labels.push('phase/0');
+            if (title.includes('phase 1') || title.includes('system prompt')) labels.push('phase/1');
+            if (title.includes('phase 2') || title.includes('安全护栏')) labels.push('phase/2');
+            if (title.includes('phase 3') || title.includes('沉默') || title.includes('退出')) labels.push('phase/3');
+            if (title.includes('phase 4') || title.includes('记忆')) labels.push('phase/4');
+            if (title.includes('phase 5') || title.includes('训练')) labels.push('phase/5');
+            if (title.includes('phase 6') || title.includes('昇腾')) labels.push('phase/6');
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: labels
+              });
+            }
