@@ -2,7 +2,7 @@
 
 ## What is CradleCoach?
 
-面向 ADHD 儿童的端侧 AI 认知训练设备——PC 端 Harness 原型。基于 MiniCPM-o 4.5 全模态模型和昇腾 NPU，在 MiniCPM-o-Demo（子模块 `minicpmo-demo/`）之上增加执行功能训练引擎和《暂行办法》（2026.7.15 施行）合规模块。
+面向 ADHD 儿童的端侧 AI 认知训练设备——PC 端 Harness 原型。基于 MiniCPM-o 4.5 全模态模型（Phase 0-5 通过 OpenBMB 云端 API 推理），在 MiniCPM-o-Demo（`minicpmo-demo/`，内嵌源码）之上增加执行功能训练引擎和《暂行办法》（2026.7.15 施行）合规模块。
 
 > 🏆 参加 MiniCPM × 昇腾挑战赛 应用创新赛道。
 
@@ -11,7 +11,8 @@
 ```bash
 python3 -m pytest tests/ -v          # 运行全部合规回归测试
 python3 -m pytest tests/ -v -k NAME  # 运行指定测试
-cd minicpmo-demo && docker compose up  # 启动 Demo
+CRADLECOACH_API_KEY=sk-xxx python minicpmo-demo/api_bridge_server.py --port 22400 --api-mode chat  # API Bridge 模式
+cd minicpmo-demo && docker compose up  # 本地 PyTorch 模式
 python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 ```
 
@@ -32,7 +33,7 @@ cradle_memory/       — LanceDB 记忆系统（Phase 4）
 cradle_training/     — 训练游戏引擎（Phase 5）
 config/              — System Prompt 配置
 tests/               — 合规回归测试
-minicpmo-demo/       — MiniCPM-o-Demo 子模块
+minicpmo-demo/       — MiniCPM-o-Demo 内嵌源码（含 api_bridge_server.py）
 openspec/specs/      — 行为规范（该做什么）
 openspec/changes/    — 变更提案（正在改什么）
 .claude/             — CCPM 项目状态（epics/tasks/issue-state）
@@ -55,4 +56,4 @@ docs/                — 设计文档和开发规约
 
 - MiniCPM-o-Demo 的 `/competition` 页面含 WebGL 渲染，Chrome Headless 抓取时需 `--disable-gpu --disable-software-rasterizer`
 - 昇腾 HiDevLab 环境审核需 1-3 工作日，申请原因备注"参加面壁昇腾大赛"
-- `minicpmo-demo/` 是 git submodule，clone 时需 `--recursive`
+- `openspec/` 下为规划真相文件，变更提案完成后需同步 specs/
