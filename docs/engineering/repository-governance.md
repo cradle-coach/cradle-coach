@@ -37,10 +37,10 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 每个 Phase 的标准流程：
 
 1. 确认 GitHub Issue 已存在
-2. 创建 `.claude/issue-state/<issue-number>-<name>.md`
+2. 创建 `.claude/issue-state/<issue-number>-<short-name>.md`
 3. `git checkout -b feature/<issue-number>-<short-name> upstream/main`
 4. 开发 → 测试 → commit
-5. `git push origin feature/<issue-number>-<name>`
+5. `git push origin feature/<issue-number>-<short-name>`
 6. 创建 PR 到 `upstream/main`
 7. Review → squash merge → 关闭 Issue
 8. 更新 Epic 状态
