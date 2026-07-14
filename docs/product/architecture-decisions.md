@@ -132,29 +132,3 @@ Phase 6:    Gateway → Worker → API Bridge → Ascend NPU (Local)
 ### 理由
 
 《暂行办法》第 13 条要求"发现极端情境时应联络监护人"——这需要网络通信。纯离线架构在法律上与第 13 条存在矛盾。"端侧推理"指推理计算在本地完成（隐私 + 零推理成本），而非"设备永远不联网"。
-
----
-
-## 决策 7：四层开发框架
-
-### 决策
-
-项目采用 Superpowers + OpenSpec + CCPM + CI 四层开发框架。
-
-### 四层模型
-
-```
-Agent Instructions    →  AGENTS.md + .claude/SUPERPOWERS_AGENTS.md
-Planning Truth        →  openspec/specs/ + openspec/changes/
-Execution State       →  .claude/ (epics + issue-state)
-Enforceable Contracts →  .githooks/pre-push + .github/workflows/
-```
-
-### 设计来源
-
-该框架的设计基于多个 AI 辅助开发项目的共性提炼，结合业界 Agent 辅助开发的最佳实践。核心洞察：Agent 辅助开发需要四个独立且不可互相替代的真相来源——行为指令（AGENTS.md）、规划真相（OpenSpec）、执行状态（CCPM）、可执行合约（CI/Hooks）。任何一层的缺失都会导致 Agent 在缺乏约束的情况下做出不可预期的行为。
-
-### 参考
-
-- 流程总纲：`docs/engineering/development-workflow.md`
-- 仓库规约：`docs/engineering/repository-governance.md`
