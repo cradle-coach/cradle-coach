@@ -18,12 +18,28 @@ python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 
 ## Agent Operating Flow
 
-- **Session Start**: 读 `.claude/issue-state/` 下当前活跃 Issue 的状态文件，确认上次做到哪了。
-- **Before Work**: 确认当前 Issue 已存在 → 创建或确认匹配的 `.claude/tasks/` 文件 → 初始化 `.claude/issue-state/` 文件。
-- **Implementing**: 每个 Phase 开一个 `feature/#N-phase-name` branch。合规模块必须在 `tests/test_compliance_regression.py` 加测试。System Prompt 修改必须更新 `config/cradlecoach_system_prompt.yaml` 并跑测试。
-- **Before Push**: `python3 -m pytest tests/ -v` 全部通过。Commit 格式 `type: description`。
-- **Before PR**: 刷新 `.claude/issue-state/` 文件，确保 `last-session` 和 `summary` 是最新的。
-- **After Merge**: 关闭 Issue，`.claude/issue-state/` 归档。从最新的 `upstream/main` 开下一个分支。
+每个 Phase 的标准流程及各阶段必须执行的 Superpowers skill：
+
+| 阶段 | Skill | 操作 |
+|------|-------|------|
+| **Session Start** | — | 读 `.claude/issue-state/` 下当前活跃 Issue 的状态文件，确认上次做到哪了 |
+| **方案推演** | `brainstorming` | Issue 创建后，在「方案推演」区域记录技术路径、设计决策、风险。详见 `docs/engineering/development-workflow.md` |
+| **制定计划** | `writing-plans` | 将方案转化为 TDD 顺序的任务清单。如涉及行为变更，同步创建 `openspec/changes/<date>-<name>.md` 提案 |
+| **开发执行** | `test-driven-development` | RED → GREEN → REFACTOR 循环。合规模块必须在 `tests/test_compliance_regression.py` 加测试。System Prompt 修改必须更新 `config/cradlecoach_system_prompt.yaml` 并跑测试 |
+| **代码审查** | `requesting-code-review` | 检查合规约束、测试覆盖、Conventions 遵守情况 |
+| **Before Push** | — | `python3 -m pytest tests/ -v` 全部通过。Commit 格式 `type: description` |
+| **Before PR** | `verification-before-completion` | 最终门禁：验收标准 + pytest 全绿 + `.claude/issue-state/` 状态更新 |
+| **After Merge** | — | 关闭 Issue，`.claude/issue-state/` 归档，更新 `.claude/epics/` Epic 状态。从最新的 `upstream/main` 开下一个分支 |
+
+## Superpowers Integration
+
+本项目已安装 Superpowers v6.1.1（`.claude/skills/superpowers/`，14 个 skill）。详细触发时机和 CradleCoach 特有限制见 `.claude/SUPERPOWERS_AGENTS.md`。
+
+**关键规则**：
+- 每个 Phase 必须依序经过 brainstorming → writing-plans → test-driven-development → verification-before-completion
+- `/verification-before-completion` 是合并前硬门禁，不得跳过
+- Issue 模板：使用 `.github/ISSUE_TEMPLATE/phase-issue.md`（Superpowers 结构预填充）
+- PR 模板：使用 `.github/PULL_REQUEST_TEMPLATE.md`（Superpowers 确认项 + 验证清单）
 
 ## Repository Areas
 
