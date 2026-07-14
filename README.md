@@ -83,15 +83,17 @@ python3 -m pytest tests/ -v
 
 ## 开发阶段
 
-| Phase | 内容 | 状态 |
-|-------|------|:--:|
-| Phase 0 | 环境搭建 + MiniCPM-o-Demo 云端 API 适配 | ✅ |
-| Phase 1 | 合规人格配置（System Prompt 注入） | ⬜ |
-| Phase 2 | 安全护栏 Gateway 集成 | ⬜ |
-| Phase 3 | 沉默控制 + 退出管理 + 对话流 + 可观测性集成 | ⬜ |
-| Phase 4 | 记忆系统（LanceDB） | ⬜ |
-| Phase 5 | 训练游戏引擎 | ⬜ |
-| Phase 6 | 昇腾 NPU 适配 + 材料提交 | ⬜ |
+| Phase | 内容 | Issue | 状态 |
+|-------|------|-------|:--:|
+| Phase 0 | 环境搭建 + MiniCPM-o-Demo 云端 API 适配 | [#3](https://github.com/cradle-coach/cradle-coach/issues/3) | ✅ |
+| Phase 1 | 合规人格配置（System Prompt 注入） | [#4](https://github.com/cradle-coach/cradle-coach/issues/4) | ⬜ |
+| Phase 2 | 安全护栏 Gateway 集成 | [#5](https://github.com/cradle-coach/cradle-coach/issues/5) | ⬜ |
+| Phase 3a | 沉默控制 + 对话流集成 | [#6](https://github.com/cradle-coach/cradle-coach/issues/6) | ⬜ |
+| Phase 3b | 退出管理 + 可观测性集成 | [#18](https://github.com/cradle-coach/cradle-coach/issues/18) | ⬜ |
+| Phase 4 | 记忆系统（LanceDB） | [#7](https://github.com/cradle-coach/cradle-coach/issues/7) | ⬜ |
+| Phase 5 | 训练游戏引擎 | [#8](https://github.com/cradle-coach/cradle-coach/issues/8) | ⬜ |
+| Phase 6 | 昇腾 NPU 适配 + 材料提交 | [#9](https://github.com/cradle-coach/cradle-coach/issues/9) | ⬜ |
+| — | API Bridge 全交互模式适配 | [#14](https://github.com/cradle-coach/cradle-coach/issues/14) | ⬜ |
 
 ## 许可证
 
