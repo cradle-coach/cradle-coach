@@ -18,9 +18,10 @@ Enforceable Contracts →  .githooks/ + .github/workflows/  (质量门)
 **触发**: 产品需求、法规变更、比赛要求等。
 
 1. **在 GitHub 创建 Issue**，使用 `Phase Development Issue` 模板
-   - 模板自动包含：背景 → 方案推演 → 任务拆解(TDD顺序) → 验收标准 → 验证清单
 2. CI 自动打 `phase/N` 标签（`issue-automation.yml`）
-3. 如涉及行为变更，同步创建 `openspec/changes/<date>-<name>.md` 提案
+3. **创建 OpenSpec 提案**：`/opsx:propose "<description>"` 或 `openspec change new <name>`
+   - 提案包含：背景 → In Scope / Out of Scope → 验收标准
+   - OpenSpec 提案与 GitHub Issue 一一对应
 
 ### 2. 方案推演（Superpowers: brainstorming）
 
@@ -83,20 +84,21 @@ gh pr create --repo cradle-coach/cradle-coach --base main --head <fork-owner>:fe
 
 ### 6. 合并与归档
 
-```bash
-# Squash merge → 删除分支 → 关闭 Issue
-# 更新 .claude/epics/ 对应的 Epic 文件状态
-```
+1. `/verification-before-completion` — 最终验证
+2. **归档 OpenSpec 提案**：`/opsx:archive <change-name>` 或 `openspec archive <change-name>`
+3. 如涉及 spec 变更，提案中的 spec delta 会自动合并到 `openspec/specs/`
+4. Squash merge → 删除分支 → 关闭 Issue
+5. 更新 `.claude/epics/` Epic 文件状态
 
 ## 各层协作关系
 
 | 事件 | OpenSpec | CCPM (.claude/) | GitHub | CI/Hooks |
 |------|----------|-----------------|--------|----------|
-| 新需求 | 创建 `changes/<date>-<name>.md` | — | 创建 Issue（模板） | 自动打 label |
-| 开始开发 | — | 创建 `issue-state/` 文件 | Assign Issue | — |
+| 新需求 | `/opsx:propose` → 创建提案目录 | — | 创建 Issue（模板） | 自动打 label |
+| 开始开发 | `/opsx:apply` → 按提案执行 | 创建 `issue-state/` 文件 | Assign Issue | — |
 | TDD 循环 | — | 更新 `last-session` | — | pre-push 跑 pytest |
 | 提 PR | — | 更新 `summary` | PR 模板 | CI 跑全量测试 |
-| 合并后 | 合并 proposal 到 `specs/` | 归档 state 文件 | 关闭 Issue | — |
+| 合并后 | `/opsx:archive` → 归档提案 | 归档 state 文件 | 关闭 Issue | — |
 
 ## Superpowers Skill 触发时机
 

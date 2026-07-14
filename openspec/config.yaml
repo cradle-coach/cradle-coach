@@ -1,0 +1,16 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Python 3.11+, MiniCPM-o 4.5, OpenBMB Cloud API, LanceDB, WebSocket
+  Framework: Superpowers + OpenSpec + CCPM + CI (four-layer development framework)
+  Domain: ADHD children cognitive training device
+  Regulatory: 《人工智能拟人化互动服务管理暂行办法》(effective 2026-07-15)
+
+rules:
+  proposal:
+    - Must reference corresponding GitHub Issue
+    - Must include In Scope / Out of Scope
+    - Must include acceptance criteria
+  tasks:
+    - Must follow TDD order (test before implementation)
+    - Each task must be independently verifiable
