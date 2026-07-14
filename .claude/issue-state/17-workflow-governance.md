@@ -1,6 +1,6 @@
 # Issue #17: 固化开发流程——补齐模板、标签、CCPM状态、流程文档
 
-status: in-progress
+status: completed
 branch: feature/17-workflow-governance
 last-session: 2026-07-14
 summary: |
