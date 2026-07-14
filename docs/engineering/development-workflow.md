@@ -69,7 +69,7 @@ git push origin feature/<issue-number>-<short-name>
 
 # 2. 创建 PR 到上游仓库（upstream），禁止提到 fork
 #    使用 PR 模板，勾选 Superpowers 确认项
-gh pr create --repo cradle-coach/cradle-coach --base main --head feature/<issue-number>-<short-name>
+gh pr create --repo cradle-coach/cradle-coach --base main --head <fork-owner>:feature/<issue-number>-<short-name>
 
 # 3. 运行 /superpowers:requesting-code-review
 # 4. 运行 /verification-before-completion
