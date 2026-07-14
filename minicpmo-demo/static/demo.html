@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CradleCoach Demo — All Modes</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui;background:#0a0a0f;color:#e0e0e0;display:flex;justify-content:center;padding:20px 16px}
+main{max-width:700px;width:100%}
+h1{font-size:1.4em;margin-bottom:4px}
+h1 span{background:linear-gradient(90deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:#888;font-size:.85em;margin-bottom:16px}
+.modes{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.mode-btn{padding:8px 14px;border:1px solid #333;border-radius:8px;background:#111;color:#aaa;cursor:pointer;font-size:.85em}
+.mode-btn.active{border-color:#60a5fa;color:#60a5fa}
+#log{background:#111;border-radius:8px;padding:16px;min-height:250px;max-height:55vh;overflow-y:auto;margin-bottom:12px;font-size:.9em;line-height:1.6;font-family:monospace}
+#log .user{color:#60a5fa}
+#log .ai{color:#a78bfa}
+#log .sys{color:#555;font-style:italic}
+#log .err{color:#ef4444}
+#input{display:flex;gap:8px}
+#msg{flex:1;padding:10px 14px;border:1px solid #333;border-radius:8px;background:#111;color:#e0e0e0;font-size:.95em;outline:none}
+#msg:focus{border-color:#60a5fa}
+#send{padding:10px 18px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600}
+#send:hover{background:#3b82f6}
+#send:disabled{opacity:.4}
+.status{font-size:.8em;color:#888;margin-top:8px}
+</style>
+</head>
+<body><main>
+<h1><span>CradleCoach</span> Demo</h1>
+<p class="sub">MiniCPM-o 4.5 · OpenBMB Cloud API · API Bridge</p>
+<div class="modes">
+  <button class="mode-btn active" data-mode="chat">Turnbased Chat</button>
+  <button class="mode-btn" data-mode="audio">Audio Duplex</button>
+</div>
+<div id="log"><div class="sys">Select a mode and connect...</div></div>
+<div id="input"><input id="msg" placeholder="Type a message..." autofocus disabled><button id="send" disabled>Send</button></div>
+<div class="status" id="status">Disconnected</div>
+</main>
+<script>
+const log=document.getElementById('log'),input=document.getElementById('msg'),
+      btn=document.getElementById('send'),status=document.getElementById('status');
+
+function add(cls,text){const d=document.createElement('div');d.className=cls;d.textContent=text;log.appendChild(d);log.scrollTop=log.scrollHeight}
+
+let ws=null,sid='',ready=false,currentMode='chat',textBuffer='';
+
+function connect(mode){
+  if(ws){ws.close();ws=null}
+  ready=false;sid='';textBuffer='';
+  const proto=location.protocol==='https:'?'wss':'ws';
+  const url=`${proto}://${location.host}/v1/realtime?mode=${mode}`;
+  currentMode=mode;
+  status.textContent='Connecting...';btn.disabled=true;input.disabled=true;
+  add('sys',`[${mode}] Connecting to API Bridge...`);
+  
+  ws=new WebSocket(url);
+  ws.onopen=()=>{add('sys','WS open, sending session.init...');ws.send(JSON.stringify({type:'session.init',payload:{}}))};
+  ws.onmessage=e=>{
+    const d=JSON.parse(e.data),t=d.type;
+    if(t==='session.created'){sid=d.session_id;ready=true;status.textContent=`Connected (${d.mode||'?'})`;btn.disabled=false;input.disabled=false;input.focus();add('sys',`Ready! Mode: ${d.mode||'?'}. Type a message.`)}
+    else if(t==='response.output.delta'){
+      const k=d.kind||'';
+      if(k==='text'){textBuffer+=d.text||'';const el=log.querySelector('.ai.pending');if(el)el.textContent=textBuffer;else{const div=document.createElement('div');div.className='ai pending';div.textContent=textBuffer;log.appendChild(div)}log.scrollTop=log.scrollHeight}
+      else if(k==='audio'){if(!log.querySelector('.ai.audio')){const div=document.createElement('div');div.className='ai audio';div.textContent='🔊 Audio response (receiving)...';log.appendChild(div)}}
+      else if(k==='listen'){const el=log.querySelector('.sys.listen');if(!el){const div=document.createElement('div');div.className='sys listen';div.textContent='🎤 Listening...';log.appendChild(div)}}
+    }
+    else if(t==='response.done'){const el=log.querySelector('.ai.pending');if(el){el.classList.remove('pending');add('sys','---')}textBuffer=''}
+    else if(t==='session.closed'){add('sys','Session ended.');ready=false}
+    else if(t==='error'){add('err','Error: '+(d.error||d.message||'unknown'))}
+  };
+  ws.onclose=()=>{ready=false;status.textContent='Disconnected';add('sys','Disconnected.')}
+  ws.onerror=()=>{add('err','Connection error');status.textContent='Error'}
+}
+
+function sendMsg(){
+  if(!ready||!input.value.trim())return;
+  const text=input.value.trim();add('user',text);
+  const mode=currentMode;
+  if(mode==='chat'){
+    ws.send(JSON.stringify({type:'input.append',input:{messages:[{role:'user',content:text}],streaming:true,generation:{max_new_tokens:256}}}));
+  }
+  input.value='';input.focus()
+}
+
+btn.onclick=sendMsg;input.onkeydown=e=>{if(e.key==='Enter')sendMsg()};
+
+document.querySelectorAll('.mode-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    connect(b.dataset.mode);
+  });
+});
+
+// Auto-connect chat mode
+connect('chat');
+</script>
+</body></html>
