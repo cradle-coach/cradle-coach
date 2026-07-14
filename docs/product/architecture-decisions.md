@@ -88,7 +88,6 @@ Phase 6:    Gateway → Worker → API Bridge → Ascend NPU (Local)
 
 1. **硬件创业的风险结构**：硬件原型迭代周期 2-4 周/次，软件迭代 1 天/次。用 PC 端吸收全部软件风险，硬件只做已验证功能的载体
 2. **MiniCPM-o-Demo 已提供完整前端**：5 种交互模式（turnbased/realtime/half-duplex/audio-duplex/omni）的前端界面已就绪，API Bridge 适配后可直接复用
-3. **投资者演示**：PC 端 Demo 比硬件原型更易演示和迭代，且成本为零
 
 ### PC → 硬件的映射
 
