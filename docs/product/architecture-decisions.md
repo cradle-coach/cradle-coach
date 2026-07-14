@@ -1,0 +1,160 @@
+# 架构决策：关键技术选型与设计理由
+
+## 决策 1：Harness 架构模式
+
+### 决策
+
+将端侧 AI 模型看作被治理的 Agent，在其上构建 Harness（约束壳），而非仅依赖模型微调。
+
+### 理由
+
+微调只能改变模型"本能"，不能做到运行时强制执行的安全拦截。在 ADHD 儿童训练场景中，以下约束必须在代码层强制实施：
+
+| 约束 | 微调能做到吗？ | Harness 能做到吗？ |
+|------|:---------:|:----------:|
+| 过滤自伤/暴力关键词 | 部分（可能仍会生成） | 是（硬拦截，输出前阻断） |
+| 强制沉默窗口 | 否 | 是（VAD hold-off 机制） |
+| 2 小时强制休眠 | 否 | 是（硬件计时器，不可绕过） |
+| 退出后 5 分钟不主动说话 | 否 | 是（机械执行，不依赖模型判断） |
+
+### 三层约束体系
+
+```
+第一层: 模型微调        → 改变底层行为偏好（"天性"）
+第二层: 推理超参        → 调整输出行为参数（"脾气"）
+第三层: Harness（约束壳）→ 运行时强制执行底线约束（"底线"）
+```
+
+三级各有独立职责，不可互相替代。在训练场景中，Harness 对最终体验的影响可能大于模型参数量——一个 9B 模型配正确 Harness 可能优于不加 Harness 的 100B 模型。
+
+### 参考
+
+- Harness 模块实现：`gateway_modules/`
+- 架构设计 Spec：`openspec/specs/compliance-harness.md`
+
+---
+
+## 决策 2：MiniCPM-o 4.5 全模态模型
+
+### 决策
+
+选用 MiniCPM-o 4.5（OpenBMB，9B 参数）作为核心推理模型。
+
+### 理由
+
+1. **全模态一体化**：单模型同时处理文本 + 语音 + 图像理解与生成，无需 ASR+LLM+TTS 管线串联。管线架构中 ASR 和 TTS 是不可训练的固定组件，错误在阶段间累积放大；全模态模型端到端优化，各模态共享语义理解
+2. **端侧部署可行**：9B 参数量化后可部署到昇腾 NPU（Phase 6 目标）
+3. **开源**：Apache 2.0 许可证，可自由微调
+4. **全双工能力**：原生支持 barge-in（用户可随时打断），这是 ADHD 儿童交互体验的关键
+
+### 替代方案对比
+
+| 方案 | 优势 | 劣势 |
+|------|------|------|
+| 管线架构（Whisper+GPT+CosyVoice） | 各组件独立优化 | 延迟累加（ASR 200ms+LLM 1s+TTS 500ms）、错误级联放大、barge-in 难实现 |
+| 云端 API（GPT-4o/Gemini） | 模型最强 | 延迟不可控、成本不可控、隐私风险、公司倒闭后硬件变砖 |
+| **MiniCPM-o 4.5（采用）** | 端侧可部署、全模态端到端、全双工原生支持、开源可控 | 9B 参数需要量化才能在端侧高效运行 |
+
+---
+
+## 决策 3：API Bridge 模式（Phase 0-5）
+
+### 决策
+
+Phase 0-5 通过 OpenBMB 云端 API 进行推理，Phase 6 切换到昇腾 NPU 本地推理。API Bridge 作为独立 WebSocket 代理进程存在。
+
+### 理由
+
+1. **开发不阻塞于硬件审批**：昇腾 HiDevLab 环境审核需 1-3 工作日，Phase 0-5 不需要等待
+2. **协议一致性**：API Bridge 使用与本地 Backend 相同的 WebSocket 协议——切换后端时不需改动 Gateway/Worker 代码
+3. **Fallback 保留**：Phase 6 昇腾适配后，API Bridge 作为 Cloud API 模式保留，两种模式可通过配置切换
+
+### 架构
+
+```
+Phase 0-5:  Gateway → Worker → API Bridge → api.modelbest.cn (Cloud)
+Phase 6:    Gateway → Worker → API Bridge → Ascend NPU (Local)
+```
+
+---
+
+## 决策 4：PC 端软件仿真先于硬件原型
+
+### 决策
+
+在毛绒玩具硬件原型之前，先在 PC 端通过 MiniCPM-o-Demo 完成全部软件功能开发和验证。
+
+### 理由
+
+1. **硬件创业的风险结构**：硬件原型迭代周期 2-4 周/次，软件迭代 1 天/次。用 PC 端吸收全部软件风险，硬件只做已验证功能的载体
+2. **MiniCPM-o-Demo 已提供完整前端**：5 种交互模式（turnbased/realtime/half-duplex/audio-duplex/omni）的前端界面已就绪，API Bridge 适配后可直接复用
+3. **投资者演示**：PC 端 Demo 比硬件原型更易演示和迭代，且成本为零
+
+### PC → 硬件的映射
+
+| PC 端组件 | 硬件对应 |
+|-----------|----------|
+| 浏览器麦克风 | MEMS 麦克风阵列 |
+| 浏览器扬声器 | 3W D 类功放 + 微型喇叭 |
+| API Bridge（本地进程） | NPU SoC 上的推理 Runtime |
+| Gateway（本地进程） | Harness 固件 |
+
+---
+
+## 决策 5：LanceDB 本地记忆系统
+
+### 决策
+
+使用 LanceDB（嵌入式向量数据库）实现三层记忆架构，所有数据仅存本地。
+
+### 三层架构
+
+| 层级 | 存储 | 生命周期 | 内容 |
+|------|------|----------|------|
+| 会话级 | 内存 dict | 单次会话 | 当前对话上下文、本轮训练数据 |
+| 短期级 | LanceDB | 30 天 | 对话摘要 + 语义检索 top-5 |
+| 核心级 | 本地 JSON | 永久 | 用户偏好、训练进度、关键里程碑 |
+
+### 为什么是 LanceDB
+
+- 嵌入式：不需要独立数据库服务，与模型推理在同一进程内
+- 零网络依赖：所有数据在本地，不传输到云端
+- PII 不入库：个人身份信息不写入任何持久化存储
+
+---
+
+## 决策 6：端侧全离线 vs 最低限度通信
+
+### 决策
+
+端侧推理全离线运行，但保留最低限度通信能力（BLE/WiFi）用于：(1) 家长紧急推送，(2) 训练报告同步，(3) 固件 OTA。
+
+### 理由
+
+《暂行办法》第 13 条要求"发现极端情境时应联络监护人"——这需要网络通信。纯离线架构在法律上与第 13 条存在矛盾。"端侧推理"指推理计算在本地完成（隐私 + 零推理成本），而非"设备永远不联网"。
+
+---
+
+## 决策 7：四层开发框架
+
+### 决策
+
+项目采用 Superpowers + OpenSpec + CCPM + CI 四层开发框架。
+
+### 四层模型
+
+```
+Agent Instructions    →  AGENTS.md + .claude/SUPERPOWERS_AGENTS.md
+Planning Truth        →  openspec/specs/ + openspec/changes/
+Execution State       →  .claude/ (epics + issue-state)
+Enforceable Contracts →  .githooks/pre-push + .github/workflows/
+```
+
+### 设计来源
+
+该框架的设计源自对工作区多个项目的共性提炼，结合业界 Agent 辅助开发的最佳实践。核心洞察：Agent 辅助开发需要四个独立且不可互相替代的真相来源——行为指令（AGENTS.md）、规划真相（OpenSpec）、执行状态（CCPM）、可执行合约（CI/Hooks）。任何一层的缺失都会导致 Agent 在缺乏约束的情况下做出不可预期的行为。
+
+### 参考
+
+- 流程总纲：`docs/engineering/development-workflow.md`
+- 仓库规约：`docs/engineering/repository-governance.md`
