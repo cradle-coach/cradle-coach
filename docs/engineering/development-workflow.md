@@ -64,10 +64,13 @@ python3 -m pytest tests/ -v
 ### 5. 代码审查与验证（Superpowers: requesting-code-review + verification-before-completion）
 
 ```bash
-# 1. 推送分支
+# 1. 推送分支到个人 fork（origin）
 git push origin feature/<issue-number>-<short-name>
 
-# 2. 创建 PR（使用 PR 模板，勾选 Superpowers 确认项）
+# 2. 创建 PR 到上游仓库（upstream），禁止提到 fork
+#    使用 PR 模板，勾选 Superpowers 确认项
+gh pr create --repo cradle-coach/cradle-coach --base main --head feature/<issue-number>-<short-name>
+
 # 3. 运行 /superpowers:requesting-code-review
 # 4. 运行 /verification-before-completion
 ```

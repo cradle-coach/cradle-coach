@@ -40,6 +40,8 @@ python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 - `/verification-before-completion` 是合并前硬门禁，不得跳过
 - Issue 模板：使用 `.github/ISSUE_TEMPLATE/phase-issue.md`（Superpowers 结构预填充）
 - PR 模板：使用 `.github/PULL_REQUEST_TEMPLATE.md`（Superpowers 确认项 + 验证清单）
+- **PR 目标**：必须提到上游 `cradle-coach/cradle-coach`（`--repo cradle-coach/cradle-coach`），禁止提到个人 fork
+- **Dual-remote**：`origin` = 个人 fork（用于 push 分支），`upstream` = 上游仓库（用于拉取 main 和创建 PR）
 
 ## Repository Areas
 

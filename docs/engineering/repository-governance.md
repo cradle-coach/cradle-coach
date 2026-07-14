@@ -22,10 +22,20 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ## PR 规范
 
+- **PR 目标仓库**：必须提到上游 `cradle-coach/cradle-coach`（`upstream`），不得提到个人 fork（`origin`）
 - PR 描述引用 Issue：`Closes #N`
 - PR 标题与 Issue 标题一致或概括其核心变更
 - 必须使用 `.github/PULL_REQUEST_TEMPLATE.md`
 - Solo 模式：自己 review 后合并
+
+## Remote 约定
+
+| Remote | 用途 |
+|--------|------|
+| `origin` | 个人 fork —— 仅用于推送 feature 分支 |
+| `upstream` | 上游仓库 `cradle-coach/cradle-coach` —— 拉取 main + 创建 PR |
+
+**规则**：`git push origin <branch>`（推到 fork），然后 `gh pr create --repo cradle-coach/cradle-coach`（提到上游）。PR 永远不提到 fork。
 
 ## 质量门
 
@@ -44,8 +54,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 5. 如涉及行为变更，创建 `openspec/changes/<date>-<name>.md` 提案
 6. `git checkout -b feature/<issue-number>-<short-name> upstream/main`
 7. TDD 循环（`/superpowers:test-driven-development`）：RED → GREEN → REFACTOR → commit
-8. `git push origin feature/<issue-number>-<short-name>`
-9. 创建 PR 到 `upstream/main`（使用 PR 模板）
+8. `git push origin feature/<issue-number>-<short-name>`（推到个人 fork）
+9. `gh pr create --repo cradle-coach/cradle-coach`（提到上游，使用 PR 模板）。**禁止提到 fork**
 10. `/verification-before-completion` — 最终门禁
 11. Review → squash merge → 关闭 Issue
 12. 更新 `.claude/epics/` 对应的 Epic 状态
