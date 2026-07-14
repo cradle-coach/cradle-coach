@@ -1,16 +1,17 @@
 # Changes
 
-进行中的变更提案。完成后合并回 `specs/`。
+Active OpenSpec change proposals. Each change is a directory with `proposal.md`.
 
-## 模板
+## Workflow
 
-```markdown
-# [日期] [变更名称]
+1. **Propose**: `/opsx:propose "<description>"` — creates a new change directory from the spec template
+2. **Apply**: `/opsx:apply <change-name>` — execute the implementation per the proposal
+3. **Archive**: `/opsx:archive <change-name>` — move completed change to `archive/`, sync specs
 
-## 背景
-## 目标
-## In Scope
-## Out of Scope
-## 验收标准
-## 风险
-```
+## Current Changes
+
+Run `openspec list` to see active changes. Empty means no active proposals — create one when starting new work.
+
+## Archived
+
+Completed changes live in `archive/`. Each archived change documents what was done and why.
