@@ -152,7 +152,7 @@ Enforceable Contracts →  .githooks/pre-push + .github/workflows/
 
 ### 设计来源
 
-该框架的设计源自对工作区多个项目的共性提炼，结合业界 Agent 辅助开发的最佳实践。核心洞察：Agent 辅助开发需要四个独立且不可互相替代的真相来源——行为指令（AGENTS.md）、规划真相（OpenSpec）、执行状态（CCPM）、可执行合约（CI/Hooks）。任何一层的缺失都会导致 Agent 在缺乏约束的情况下做出不可预期的行为。
+该框架的设计基于多个 AI 辅助开发项目的共性提炼，结合业界 Agent 辅助开发的最佳实践。核心洞察：Agent 辅助开发需要四个独立且不可互相替代的真相来源——行为指令（AGENTS.md）、规划真相（OpenSpec）、执行状态（CCPM）、可执行合约（CI/Hooks）。任何一层的缺失都会导致 Agent 在缺乏约束的情况下做出不可预期的行为。
 
 ### 参考
 
