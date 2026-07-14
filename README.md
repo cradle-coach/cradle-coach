@@ -95,6 +95,16 @@ python3 -m pytest tests/ -v
 | Phase 6 | 昇腾 NPU 适配 + 材料提交 | [#9](https://github.com/cradle-coach/cradle-coach/issues/9) | ⬜ |
 | — | API Bridge 全交互模式适配 | [#14](https://github.com/cradle-coach/cradle-coach/issues/14) | ⬜ |
 
+## 产品文档
+
+完整的产品设计文档见 [`docs/product/`](./docs/product/)：
+
+- [市场全景](./docs/product/market-landscape.md) — 为什么选这个方向
+- [产品方案](./docs/product/adhd-product-design.md) — 产品是什么
+- [法规合规](./docs/product/regulatory-compliance.md) — 法律怎么合规
+- [架构决策](./docs/product/architecture-decisions.md) — 技术为什么这样做
+- [System Prompt 设计](./docs/product/system-prompt-design.md) — AI 人格设计
+
 ## 许可证
 
 [Apache License 2.0](LICENSE)
