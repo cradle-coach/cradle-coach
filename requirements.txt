@@ -1,13 +1,16 @@
 # CradleCoach Harness 依赖
 
-# 核心推理（继承自 MiniCPM-o-Demo）
-# 详见 minicpmo-demo/minicpmo45_service/requirements.txt
+# API Bridge
+websockets>=13.0
+pyyaml>=6.0
+
+# 测试
+numpy>=1.24
+pytest>=8.0.0
+pytest-asyncio>=0.24
 
 # 记忆系统
 lancedb>=0.6.0
 
 # 训练引擎
 # (待 Phase 5 实现)
-
-# 开发工具
-pytest>=8.0.0
