@@ -1,6 +1,6 @@
 # Issue #6: Phase 3a — 沉默控制 + 对话流集成
 
-status: pending
+status: completed
 branch: feature/6-phase3a-silence-conversation
 last-session: 2026-07-14
 summary: |
