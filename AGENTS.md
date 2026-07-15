@@ -40,7 +40,7 @@ python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 - 每个 Phase 必须依序经过 brainstorming → writing-plans → TDD（test 先行） → 自审查 → verification-before-completion
 - **TDD 硬约束**：git history 中 test commit 必须在实现 commit 之前。违反此规则视为未完成
 - **自审查硬约束**：提 PR 前必须运行 `/review` 或 `/code-review`，修复发现的问题。不得未经审查提 PR
-- **OpenSpec 硬约束**：`openspec new change` 必须在 feature 分支上执行。`.openspec.yaml` 必须 commit。`openspec archive` 必须在提 PR 前完成。PR 合并时提案已处于归档状态
+- **OpenSpec 硬约束**：`openspec new change` 必须在 feature 分支上执行。每个提案必须包含 4 个 artifact（proposal.md + design.md + specs/ + tasks.md），缺一不可。`openspec archive` 必须在提 PR 前完成，归档时 4 个 artifact 必须完整
 - `/verification-before-completion` 是合并前硬门禁，不得跳过
 - Issue 模板：使用 `.github/ISSUE_TEMPLATE/phase-issue.md`（Superpowers 结构预填充）
 - PR 模板：使用 `.github/PULL_REQUEST_TEMPLATE.md`（Superpowers 确认项 + 验证清单）
@@ -74,7 +74,7 @@ docs/                — 设计文档和开发规约
 6. 禁止直推 main
 7. **严禁串分支**：不得在 A Issue 的 branch 上 commit B Issue 的改动。每个 Issue 独占一个 branch。发现串分支立即拆分
 8. Python 3.11+，类型标注，模块 docstring
-9. **PR 完成时检查连带更新**：详见 `docs/engineering/repository-governance.md` 中的"PR 完成时的连带更新清单"——提案状态、PR 描述、README、Epic、OpenSpec 归档必须在合并前后更新
+9. **PR 完成时连带更新（硬约束）**：每个 PR 内必须同步更新以下内容，不得留到合并后——`.claude/issue-state/`（status）、`.claude/epics/`（Epic 状态）、OpenSpec 提案（归档）、`README.md`（Phase 状态表）
 
 ## Gotchas
 

@@ -1,6 +1,6 @@
 # Issue #18: Phase 3b — 退出管理 + 可观测性集成
 
-status: pending
+status: completed
 branch: feature/18-phase3b-exit-observability
 last-session: 2026-07-14
 summary: |
