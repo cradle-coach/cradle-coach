@@ -14,6 +14,7 @@ Closes #
 - [ ] `/superpowers:test-driven-development` — TDD 循环已执行
 - [ ] `/superpowers:executing-plans` — 按计划执行
 - [ ] `/superpowers:requesting-code-review` — 代码审查已请求
+- [ ] **自审查已完成** — `/review` 或 `/code-review` 已执行，发现的问题已全部修复
 
 ## 验证清单
 
