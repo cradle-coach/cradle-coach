@@ -13,11 +13,18 @@ import json
 import logging
 import os
 import signal
+import sys
+from pathlib import Path
 from typing import Optional
 from urllib.parse import parse_qs, urlparse
 
 import websockets
 from websockets.asyncio.server import serve
+
+# Ensure project root is in path for gateway_modules imports
+_PROJ_ROOT = Path(__file__).parent.parent
+if str(_PROJ_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJ_ROOT))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -81,6 +88,32 @@ def _inject_system_prompt(payload: dict) -> dict:
         payload = dict(payload)
         payload["system_prompt"] = _SYSTEM_PROMPT
     return payload
+
+
+# ── Safety Middleware ──────────────────────────────────────
+
+_safety_middleware = None
+
+
+def _init_safety_middleware():
+    """Initialize the safety middleware (lazy import)."""
+    global _safety_middleware
+    if _safety_middleware is None:
+        from gateway_modules.safety_middleware import SafetyMiddleware
+        _safety_middleware = SafetyMiddleware()
+        logger.info("SafetyMiddleware initialized")
+
+
+def _check_safety(text: str) -> str:
+    """Check text through safety middleware. Returns filtered text if blocked."""
+    if _safety_middleware is None:
+        return text
+    result = _safety_middleware.check(text)
+    if not result.passed:
+        logger.warning("Safety blocked: rule=%d reason=%s",
+                       result.rule_index, result.intercept_reason)
+        return result.filtered_tokens
+    return text
 
 
 def _decode_event(raw: str | bytes) -> dict:
@@ -197,6 +230,13 @@ async def _proxy_session(
                 if etype in ("session.queued", "session.queue_update",
                              "session.queue_done"):
                     continue
+                # Safety check on text output
+                if etype == "response.output.delta" and event.get("kind") == "text":
+                    text = event.get("text", "")
+                    filtered = _check_safety(text)
+                    if filtered != text:
+                        event = dict(event)
+                        event["text"] = filtered
                 try:
                     await worker_ws.send(json.dumps(event))
                 except websockets.ConnectionClosed:
@@ -476,5 +516,6 @@ if __name__ == "__main__":
         os.environ["CRADLECOACH_API_MODE"] = args.api_mode
     if args.system_prompt:
         _load_system_prompt(args.system_prompt)
+    _init_safety_middleware()
 
     asyncio.run(main(host=args.host, port=args.port))
