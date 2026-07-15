@@ -68,7 +68,9 @@ docs/                — 设计文档和开发规约
 4. Commit 格式：`type: description`（feat/fix/chore/docs/test），所有 AI 生成的 commit 加 `Co-Authored-By: Claude <noreply@anthropic.com>`
 5. 一个 Phase = 一个 Issue = 一个 branch = 一个 PR，squash merge 到 main
 6. 禁止直推 main
-7. Python 3.11+，类型标注，模块 docstring
+7. **严禁串分支**：不得在 A Issue 的 branch 上 commit B Issue 的改动。每个 Issue 独占一个 branch。发现串分支立即拆分
+8. Python 3.11+，类型标注，模块 docstring
+9. **PR 完成时检查连带更新**：详见 `docs/engineering/repository-governance.md` 中的"PR 完成时的连带更新清单"——提案状态、PR 描述、README、Epic、OpenSpec 归档必须在合并前后更新
 
 ## Gotchas
 

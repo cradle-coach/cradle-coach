@@ -4,11 +4,12 @@ CradleCoach 仓库开发规约。
 
 ## 分支规范
 
-- 分支命名：`feature/<issue-number>-<short-name>`
-- 一个 Issue = 一个 branch = 一个 PR
+- 分支命名：`feature/<issue-number>-<short-name>` 或 `chore/<issue-number>-<short-name>`
+- **一个 Issue = 一个 Branch = 一个 PR**，三者一一对应，不可复用
 - 所有工作从 `upstream/main` 最新 commit 开始
 - Squash merge 到 main
 - PR 合并后删除分支
+- **严禁串分支**：不得在 A Issue 的 branch 上 commit B Issue 的改动。发现串分支应立即拆分——将误提交的改动 cherry-pick 到独立分支，在正确分支上提 PR
 
 ## Commit 规范
 
@@ -80,9 +81,26 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 ## OpenSpec 窗口
 
-- **Phase 启动时**：创建 `openspec/changes/<date>-<name>.md` 提案
-- **Phase 完成时**：如涉及 spec 变更，同步合并回 `openspec/specs/`
-- **不涉及行为变更的 Phase**（如部署适配）：提案标注"不涉及"即可
+- **Phase/功能启动时**：`/opsx:propose` 创建提案目录
+- **Phase/功能完成时**：如涉及 spec 变更，合并回 `openspec/specs/`
+- **PR 合并后**：`/opsx:archive` 归档提案
+
+## PR 完成时的连带更新清单
+
+PR 合并前（或合并后立即）必须检查以下文件是否需要更新：
+
+| 类别 | 文件 | 检查内容 |
+|------|------|---------|
+| **提案** | `openspec/changes/<name>/tasks.md` | 实现状态更新为 `[x]` |
+| | `openspec/changes/<name>/design.md` | 如实现与设计有偏差，更新设计文档 |
+| | `openspec/changes/<name>/proposal.md` | 如有新发现，更新影响范围和验收标准 |
+| **PR** | PR description | 刷新验证结果、提交清单、已知限制；检查 IP/域名脱敏 |
+| **仓库文档** | `README.md` | 如新增模块、更新 Phase 状态表、新增产品文档链接 |
+| | `docs/engineering/` | 如新增或修改流程规范 |
+| | `docs/product/` | 如新增能力影响产品方案或架构决策 |
+| **CCPM** | `.claude/epics/` | 更新 Epic 状态 |
+| | `.claude/issue-state/<N>-<name>.md` | status → completed，刷新 summary |
+| **OpenSpec** | `openspec/changes/<name>/` | PR 合并后执行 `openspec archive <name>` |
 
 ## 目录约定
 
