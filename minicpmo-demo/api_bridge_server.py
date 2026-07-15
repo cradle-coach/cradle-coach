@@ -158,6 +158,38 @@ def _check_silence() -> Optional[str]:
     return None
 
 
+# ── Exit Manager & Observability ────────────────────────────
+
+_exit_manager = None
+_observability = None
+
+
+def _init_exit_and_observability():
+    """Initialize exit manager and observability."""
+    global _exit_manager, _observability
+    from gateway_modules.exit_manager import ExitManager
+    from gateway_modules.observability import Observability
+    _exit_manager = ExitManager()
+    _observability = Observability()
+    logger.info("ExitManager + Observability initialized")
+
+
+def _check_exit_keyword(text: str) -> Optional[str]:
+    """Check if text contains exit keyword. Returns exit message if so."""
+    if _exit_manager is None:
+        return None
+    result = _exit_manager.check_exit_keyword(text)
+    if result.should_exit:
+        _exit_manager.mark_exited()
+        if _observability:
+            _observability._write_log("sessions", {
+                "event": "exit_keyword",
+                "reason": result.reason,
+            })
+        return result.exit_message
+    return None
+
+
 def _get_conversation_hint() -> str:
     """Get conversation flow hint for system prompt injection."""
     if _conversation_flow is None:
@@ -252,15 +284,32 @@ async def _proxy_session(
                 msg = _decode_event(raw)
                 mtype = msg.get("type", "")
                 _touch_message_time()  # user activity prevents silence timeout
-                # Update conversation flow on user input
-                conv_flow = _conversation_flow
-                if conv_flow and mtype == "input.append":
+                # Mark activity for exit manager
+                if _exit_manager:
+                    _exit_manager.mark_activity()
+                # Check for exit keywords + update conversation flow
+                if mtype == "input.append":
                     inp = msg.get("input", {})
                     msgs = inp.get("messages", [])
                     if msgs:
                         last_content = msgs[-1].get("content", "")
                         if isinstance(last_content, str):
-                            conv_flow.on_user_response(last_content, True)
+                            # Check exit keywords first
+                            exit_msg = _check_exit_keyword(last_content)
+                            if exit_msg:
+                                await worker_ws.send(json.dumps({
+                                    "type": "response.output.delta",
+                                    "kind": "text", "text": exit_msg,
+                                }))
+                                await worker_ws.send(json.dumps(
+                                    {"type": "response.done"}))
+                                await worker_ws.send(json.dumps(
+                                    {"type": "session.closed"}))
+                                return
+                            # Update conversation flow
+                            conv_flow = _conversation_flow
+                            if conv_flow:
+                                conv_flow.on_user_response(last_content, True)
                 if mtype == "session.close":
                     await api_ws.send(json.dumps(msg))
                     return
@@ -315,6 +364,9 @@ async def _proxy_session(
                         event = dict(event)
                         event["text"] = filtered
                     _touch_message_time()
+                    # Mark activity for exit manager
+                    if _exit_manager:
+                        _exit_manager.mark_activity()
                 try:
                     await worker_ws.send(json.dumps(event))
                 except websockets.ConnectionClosed:
@@ -596,5 +648,6 @@ if __name__ == "__main__":
         _load_system_prompt(args.system_prompt)
     _init_safety_middleware()
     _init_conversation_control()
+    _init_exit_and_observability()
 
     asyncio.run(main(host=args.host, port=args.port))
