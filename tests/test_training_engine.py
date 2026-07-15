@@ -300,7 +300,7 @@ class TestTrainingManager:
         tm = TrainingManager()
 
         # 模拟刚完成训练
-        tm._last_training_time = time.time()
+        tm._last_training_time = time.monotonic()
         result = tm.should_trigger(context="", emotion="neutral")
         assert not result.trigger
 
@@ -411,7 +411,7 @@ class TestTrainingManager:
         tm = TrainingManager()
 
         assert tm.SESSION_MAX_MINUTES <= 15
-        assert tm.SESSION_MIN_MINUTES >= 5
+        assert tm.SESSION_MIN_MINUTES == 8
 
     def test_session_expiry_after_time_limit(self):
         """超过最大时长的会话应返回结束语"""
@@ -421,10 +421,70 @@ class TestTrainingManager:
 
         tm.start_session()
         # 模拟会话已运行超过 15 分钟
-        tm.session.start_time = time.time() - (tm.SESSION_MAX_MINUTES + 1) * 60
+        tm.session.start_time = time.monotonic() - (tm.SESSION_MAX_MINUTES + 1) * 60
         result = tm.start_game("antonyms", difficulty=2)
         assert result.get("session_expired")
         assert "爸爸妈妈" in result["instructions"]
+
+    def test_session_expiry_allows_recovery(self):
+        """过期会话后 start_game 应自动恢复（不需手动 end_session）"""
+        from cradle_training.training_manager import TrainingManager
+        import time
+        tm = TrainingManager()
+
+        # 模拟过期会话
+        tm.start_session()
+        tm.session.start_time = time.monotonic() - (tm.SESSION_MAX_MINUTES + 1) * 60
+
+        # 第一次调用：检测到过期，应自动结束旧会话并开始新会话
+        result1 = tm.start_game("antonyms", difficulty=2)
+        assert result1.get("session_expired")
+
+        # 第二次调用：start_game 应在检测到过期时自动调用 end_session，
+        # 所以此时 session 已清理，应能正常开始新游戏
+        result2 = tm.start_game("antonyms", difficulty=2)
+        assert not result2.get("session_expired"), (
+            "start_game should auto-recover after expiry without manual end_session"
+        )
+        assert "instructions" in result2
+        assert len(result2["instructions"]) > 0
+
+    def test_compound_emotion_triggers_guard(self):
+        """复合情绪词也应被拦截（子串匹配）"""
+        from cradle_training.training_manager import TrainingManager
+        tm = TrainingManager()
+        tm._last_training_time = 0.0
+
+        compound_emotions = [
+            "a little sad",
+            "feeling upset",
+            "very tired",
+            "so angry",
+            "有点难过",
+            "非常生气",
+        ]
+        for emotion in compound_emotions:
+            result = tm.should_trigger(context="", emotion=emotion)
+            assert not result.trigger, (
+                f"Compound emotion '{emotion}' should block training"
+            )
+
+    def test_build_feedback_called_in_evaluate(self):
+        """evaluate() 生产路径应使用 _build_feedback 而非仅用游戏引擎反馈"""
+        from cradle_training.training_manager import TrainingManager
+        tm = TrainingManager()
+
+        # 通过 evaluate 获取反馈
+        tm._last_prompt_word = "大"
+        result = tm.evaluate("antonyms", "小", "小")
+        feedback = result["feedback"]
+
+        # _build_feedback 使用 EFFORT_FEEDBACK（"我看到"、"你在"等句式），
+        # 与游戏引擎反馈（"对啦"、"答对了"、"很好"等）不同
+        assert feedback in tm.EFFORT_FEEDBACK, (
+            f"evaluate() should use _build_feedback (EFFORT_FEEDBACK), "
+            f"got game-engine feedback: {feedback}"
+        )
 
     def test_positive_feedback_focuses_effort(self):
         """正面反馈聚焦努力过程"""

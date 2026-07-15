@@ -35,7 +35,7 @@ class ReverseMemoryGame:
     """倒序记忆游戏引擎"""
 
     # 词库（按难度分级）
-    # difficulty 1-2: 具体名词，2-3 个词
+    # difficulty 1-2: 具体名词，2-4 个词
     # difficulty 3-4: 具体+抽象混合，3-5 个词
     # difficulty 5: 抽象词为主，4-6 个词
     WORD_BANK = {
