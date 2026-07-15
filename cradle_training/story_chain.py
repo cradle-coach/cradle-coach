@@ -170,7 +170,7 @@ class StoryChainGame:
     def _extract_keywords(self, text: str) -> Set[str]:
         """从文本中提取关键特征词（中文 2-gram）"""
         # 去掉标点
-        cleaned = re.sub(r'[，。！？、；：""''「」『』（）…\s]', '', text)
+        cleaned = re.sub(r'[，。！？、；：""''「」『』（）… ]', '', text)
         # 提取 2-gram 作为关键词特征
         keywords = set()
         for i in range(len(cleaned) - 1):

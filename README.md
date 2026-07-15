@@ -33,9 +33,15 @@ config/
   └── cradlecoach_system_prompt.yaml  # 合规 System Prompt
 cradle_memory/              # 记忆系统——LanceDB（Phase 4）
 cradle_training/            # 训练游戏引擎（Phase 5）
+  ├── antonyms.py            #   反义词——反应抑制（水果例外规则）
+  ├── reverse_memory.py      #   倒序记忆——工作记忆（3-6 词序列）
+  ├── emotion_guess.py       #   情绪猜谜——情绪识别（故事库 + 同义词）
+  ├── story_chain.py         #   故事接龙——认知灵活性（长度 + 连贯性）
+  └── training_manager.py    #   训练编排——触发判断、难度自适应、结束仪式
 mock_guardian_server.py     # 家长端 Mock Server（PC 仿真）
 tests/
-  └── test_compliance_regression.py  # 17 个合规回归测试
+  ├── test_compliance_regression.py  # 合规回归测试
+  └── test_training_engine.py       # 训练引擎测试（42 个）
 resources/                  # 参考音频等资源文件
 harness_logs/               # Harness 运行日志
 ```
@@ -91,7 +97,7 @@ python3 -m pytest tests/ -v
 | Phase 3a | 沉默控制 + 对话流集成 | [#6](https://github.com/cradle-coach/cradle-coach/issues/6) | ⬜ |
 | Phase 3b | 退出管理 + 可观测性集成 | [#18](https://github.com/cradle-coach/cradle-coach/issues/18) | ⬜ |
 | Phase 4 | 记忆系统（LanceDB） | [#7](https://github.com/cradle-coach/cradle-coach/issues/7) | ⬜ |
-| Phase 5 | 训练游戏引擎 | [#8](https://github.com/cradle-coach/cradle-coach/issues/8) | ⬜ |
+| Phase 5 | 训练游戏引擎 | [#8](https://github.com/cradle-coach/cradle-coach/issues/8) | ✅ |
 | Phase 6 | 昇腾 NPU 适配 + 材料提交 | [#9](https://github.com/cradle-coach/cradle-coach/issues/9) | ⬜ |
 | — | API Bridge 全交互模式适配 | [#14](https://github.com/cradle-coach/cradle-coach/issues/14) | ⬜ |
 
