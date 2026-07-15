@@ -92,6 +92,7 @@ async def _proxy_session(
                     logger.info("API queue: %s position=%s",
                                 etype, event.get("position"))
                 elif etype == "session.queue_done":
+                    await worker_ws.send(json.dumps(event))
                     return "queue_done"
                 elif etype == "session.created":
                     await worker_ws.send(json.dumps(event))
