@@ -12,18 +12,18 @@ API Bridge 消息管线
      ├── worker_to_api() —— 用户输入方向
      │       │
      │       ├── 记录最后用户输入时间
-     │       └── conversation_flow.on_user_response() — 更新状态
+     │       └── conversation_flow.on_user_response() — 更新追问状态
      │
-     └── 沉默检测（后台任务）
+     └── 沉默检测（被动触发）
              │
-             └── 每 5s 检查: (now - last_any_message) > 60s?
-                     └── YES → exit_manager 回调
+             └── 下次 AI 响应时检查: (now - last_any_message) > 60s?
+                     └── YES → 发送合规退出消息 → 关闭会话
 ```
 
 ## 沉默检测策略
 
 - **追踪最后消息时间**：同时追踪 AI 响应和用户输入的时间戳
-- **后台检测**：在 `api_to_worker()` 的消息循环中嵌入超时检查
+- **被动触发**：检测在 `api_to_worker()` 收到下一条 AI 响应时执行。若用户沉默，无 AI 响应则检测不触发——这是 API Bridge 代理架构的固有限制。真正的主动轮询需独立后台任务
 - **触发退出**：沉默 > 60s → 发送合规退出消息 → 关闭会话
 
 ## 对话流策略

@@ -123,7 +123,6 @@ _silence_controller = None
 _conversation_flow = None
 LAST_MESSAGE_TIME: float = 0.0
 SILENCE_EXIT_SECONDS = 60
-CONVERSATION_CHECK_INTERVAL = 5.0
 
 
 def _init_conversation_control():
@@ -253,6 +252,15 @@ async def _proxy_session(
                 msg = _decode_event(raw)
                 mtype = msg.get("type", "")
                 _touch_message_time()  # user activity prevents silence timeout
+                # Update conversation flow on user input
+                conv_flow = _conversation_flow
+                if conv_flow and mtype == "input.append":
+                    inp = msg.get("input", {})
+                    msgs = inp.get("messages", [])
+                    if msgs:
+                        last_content = msgs[-1].get("content", "")
+                        if isinstance(last_content, str):
+                            conv_flow.on_user_response(last_content, True)
                 if mtype == "session.close":
                     await api_ws.send(json.dumps(msg))
                     return
@@ -303,9 +311,6 @@ async def _proxy_session(
                     hint = _get_conversation_hint()
                     if hint:
                         filtered = filtered.rstrip() + hint
-                        conv_flow = _conversation_flow
-                        if conv_flow:
-                            conv_flow.on_user_response(text, True)
                     if filtered != text:
                         event = dict(event)
                         event["text"] = filtered
