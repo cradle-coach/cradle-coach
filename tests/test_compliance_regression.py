@@ -166,5 +166,85 @@ class TestIdentityDisclosure:
         assert "小计算机" in older.get_first_disclosure_text()
 
 
+class TestTrainingCompliance:
+    """训练引擎合规测试"""
+
+    def test_training_feedback_no_emotional_binding(self):
+        """训练反馈不含情感绑定表述"""
+        from cradle_training.training_manager import TrainingManager
+        tm = TrainingManager()
+
+        # 检查所有反馈文本
+        for feedback in tm.EFFORT_FEEDBACK:
+            assert "我喜欢你" not in feedback
+            assert "你是最特别的" not in feedback
+            assert "我会一直陪着你" not in feedback
+            assert "不要离开我" not in feedback
+
+    def test_training_feedback_focuses_effort(self):
+        """训练反馈聚焦努力过程而非结果"""
+        from cradle_training.training_manager import TrainingManager
+        tm = TrainingManager()
+
+        effort_keywords = ["专注", "努力", "认真", "进步", "思考", "注意力"]
+        for feedback in tm.EFFORT_FEEDBACK:
+            has_effort = any(kw in feedback for kw in effort_keywords)
+            assert has_effort, f"Feedback should mention effort: {feedback}"
+            # 不应含结果导向表述
+            assert "你真聪明" not in feedback
+
+    def test_closing_ritual_social_guidance(self):
+        """结束仪式含社交引导"""
+        from cradle_training.training_manager import TrainingManager
+        tm = TrainingManager()
+
+        for template in tm.CLOSING_MESSAGES:
+            # 每条结束语都含社交引导
+            assert "爸爸妈妈" in template or "找人" in template or "分享" in template, (
+                f"Closing message missing social guidance: {template}"
+            )
+
+    def test_antonym_feedback_no_emotional_binding(self):
+        """反义词反馈不含情感绑定"""
+        from cradle_training.antonyms import AntonymGame
+        game = AntonymGame()
+
+        for fb in game.POSITIVE_FEEDBACK + game.ENCOURAGING_FEEDBACK:
+            assert "我喜欢你" not in fb
+            assert "你真聪明" not in fb
+
+    def test_memory_feedback_effort_focused(self):
+        """倒序记忆反馈聚焦努力"""
+        from cradle_training.reverse_memory import ReverseMemoryGame
+        game = ReverseMemoryGame()
+
+        effort_keywords = ["专注", "努力", "认真", "记忆"]
+        for fb in game.POSITIVE_FEEDBACK:
+            has_effort = any(kw in fb for kw in effort_keywords)
+            assert has_effort, f"Feedback should mention effort: {fb}"
+
+    def test_emotion_feedback_effort_focused(self):
+        """情绪猜谜反馈聚焦观察力"""
+        from cradle_training.emotion_guess import EmotionGuessGame
+        game = EmotionGuessGame()
+
+        for fb in game.POSITIVE_FEEDBACK:
+            # 应有观察/专注相关表述
+            observation_words = ["观察", "认真", "专注", "努力", "注意"]
+            has_obs = any(kw in fb for kw in observation_words)
+            assert has_obs, f"Feedback should mention observation: {fb}"
+
+    def test_story_feedback_effort_focused(self):
+        """故事接龙反馈聚焦创意和投入"""
+        from cradle_training.story_chain import StoryChainGame
+        game = StoryChainGame()
+
+        for fb in game.POSITIVE_FEEDBACK:
+            # 应有创意/投入相关表述
+            creative_words = ["想象力", "创意", "认真", "投入", "灵活", "精彩", "意思"]
+            has_creative = any(kw in fb for kw in creative_words)
+            assert has_creative, f"Feedback should mention creativity: {fb}"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

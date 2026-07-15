@@ -20,6 +20,7 @@ from gateway_modules.identity_disclosure import IdentityDisclosure
 from gateway_modules.emergency_alert import EmergencyAlert
 from gateway_modules.conversation_flow import ConversationFlow
 from gateway_modules.observability import Observability
+from cradle_training.training_manager import TrainingManager
 
 
 class HarnessManager:
@@ -62,6 +63,9 @@ class HarnessManager:
         self.conversation = ConversationFlow()
         self.obs = Observability(log_base=self.log_base)
 
+        # 训练引擎
+        self.training = TrainingManager()
+
     def get_all_modules(self) -> dict:
         """返回所有 Harness 模块的字典"""
         return {
@@ -73,4 +77,5 @@ class HarnessManager:
             "emergency": self.emergency,
             "conversation": self.conversation,
             "obs": self.obs,
+            "training": self.training,
         }

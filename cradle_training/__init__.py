@@ -16,3 +16,27 @@ API:
 
 Phase 5 实现。
 """
+
+from cradle_training.antonyms import AntonymGame, AntonymResult
+from cradle_training.reverse_memory import ReverseMemoryGame, ReverseMemoryResult
+from cradle_training.emotion_guess import EmotionGuessGame, EmotionGuessResult
+from cradle_training.story_chain import StoryChainGame, StoryChainResult
+from cradle_training.training_manager import (
+    TrainingManager,
+    TrainingSession,
+    TriggerResult,
+)
+
+__all__ = [
+    "AntonymGame",
+    "AntonymResult",
+    "ReverseMemoryGame",
+    "ReverseMemoryResult",
+    "EmotionGuessGame",
+    "EmotionGuessResult",
+    "StoryChainGame",
+    "StoryChainResult",
+    "TrainingManager",
+    "TrainingSession",
+    "TriggerResult",
+]
