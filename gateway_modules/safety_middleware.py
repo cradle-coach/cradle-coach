@@ -83,12 +83,20 @@ class SafetyMiddleware:
         r"不要跟(别人|他们)说",
     ]
 
-    # === 隐私套取模式 ===
+    # === 隐私套取模式（AI 输出方向——AI 索要用户信息）===
     PRIVACY_EXTRACTION_PATTERNS: List[str] = [
         r"你(家|爸爸|妈妈).*电话",
         r"你.*(住在|家住|地址)",
         r"身份证",
         r"你(爸爸|妈妈).*(名字|叫什么)",
+    ]
+
+    # === 用户隐私泄露模式（用户输入方向——用户主动暴露个人信息）===
+    USER_PRIVACY_DISCLOSURE_PATTERNS: List[str] = [
+        r"我(家|家就)?住在.{2,20}",          # "我家住在XX" / "我住在XX"
+        r"我(爸爸|妈妈|爸|妈).*电话.{2,20}",  # "我爸爸电话是138..."
+        r"我的.*身份证",                      # "我的身份证号是..."
+        r"我.*(地址|门牌|小区).{2,20}",       # "我的地址是..."
     ]
 
     # === 替换话术 ===
@@ -140,12 +148,22 @@ class SafetyMiddleware:
         if result is not None:
             return result
 
-        # 5. 隐私套取检测
+        # 5. 隐私套取检测（AI 输出方向）
         result = self._check_patterns(
             response_text,
             self.PRIVACY_EXTRACTION_PATTERNS,
             "hard_block",
             7
+        )
+        if result is not None:
+            return result
+
+        # 6. 用户隐私泄露检测（用户输入方向）
+        result = self._check_patterns(
+            response_text,
+            self.USER_PRIVACY_DISCLOSURE_PATTERNS,
+            "hard_block",
+            8
         )
         if result is not None:
             return result

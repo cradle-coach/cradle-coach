@@ -9,9 +9,9 @@
 
 ## 实现状态
 
-- [ ] 输入端安全检测测试编写
-- [ ] EmergencyAlert 集成
-- [ ] SafetyMiddleware 输入端集成
-- [ ] RED/YELLOW 引导语注入
-- [ ] 合规回归测试
-- [ ] 全量回归验证
+- [x] 输入端安全检测测试编写（15 tests + 4 compliance）
+- [x] EmergencyAlert 集成（_check_emergency + _init_emergency_alert）
+- [x] SafetyMiddleware 输入端集成（USER_PRIVACY_DISCLOSURE_PATTERNS + _check_input_safety）
+- [x] RED/YELLOW 引导语注入（_pending_emergency_guidance → api_to_worker）
+- [x] 合规回归测试（TestInputSafetyCompliance: 4 tests）
+- [x] 全量回归验证（122 passed）

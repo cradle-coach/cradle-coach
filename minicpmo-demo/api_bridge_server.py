@@ -117,6 +117,49 @@ def _check_safety(text: str) -> str:
     return text
 
 
+# ── Emergency Alert ────────────────────────────────────────
+
+_emergency_alert = None
+_pending_emergency_guidance: str = ""
+
+
+def _init_emergency_alert():
+    """Initialize the emergency alert module (lazy import)."""
+    global _emergency_alert
+    if _emergency_alert is None:
+        from gateway_modules.emergency_alert import EmergencyAlert, AlertLevel
+        _emergency_alert = EmergencyAlert()
+        logger.info("EmergencyAlert initialized")
+
+
+def _check_emergency(text: str) -> None:
+    """Check user input for extreme emotion keywords. Sets guidance if triggered."""
+    global _pending_emergency_guidance
+    if _emergency_alert is None:
+        return
+    event = _emergency_alert.check(text)
+    from gateway_modules.emergency_alert import AlertLevel
+    if event.level == AlertLevel.RED:
+        logger.warning("Emergency RED: keyword=%s", event.keyword)
+        _pending_emergency_guidance = _emergency_alert.RED_GUIDANCE_TEXT
+    elif event.level == AlertLevel.YELLOW:
+        logger.info("Emergency YELLOW: keyword=%s count=%d",
+                    event.keyword, _emergency_alert._yellow_count)
+        _pending_emergency_guidance = _emergency_alert.YELLOW_GUIDANCE_TEXT
+
+
+def _check_input_safety(text: str) -> str:
+    """Check user input through safety middleware. Returns filtered text."""
+    if _safety_middleware is None:
+        return text
+    result = _safety_middleware.check(text)
+    if not result.passed:
+        logger.warning("Input safety blocked: rule=%d reason=%s",
+                       result.rule_index, result.intercept_reason)
+        return result.filtered_tokens
+    return text
+
+
 # ── Silence & Conversation Control ─────────────────────────
 
 _silence_controller = None
@@ -306,6 +349,10 @@ async def _proxy_session(
                                 await worker_ws.send(json.dumps(
                                     {"type": "session.closed"}))
                                 return
+                            # Check emergency alert on user input
+                            _maybe_emergency_guidance = _check_emergency(last_content)
+                            # Check input safety (privacy, hard blocks)
+                            last_content = _check_input_safety(last_content)
                             # Update conversation flow
                             conv_flow = _conversation_flow
                             if conv_flow:
@@ -360,6 +407,11 @@ async def _proxy_session(
                     hint = _get_conversation_hint()
                     if hint:
                         filtered = filtered.rstrip() + hint
+                    # Inject emergency guidance if pending (RED/YELLOW)
+                    global _pending_emergency_guidance
+                    if _pending_emergency_guidance:
+                        filtered = _pending_emergency_guidance + "\n\n" + filtered
+                        _pending_emergency_guidance = ""
                     if filtered != text:
                         event = dict(event)
                         event["text"] = filtered
@@ -647,6 +699,7 @@ if __name__ == "__main__":
     if args.system_prompt:
         _load_system_prompt(args.system_prompt)
     _init_safety_middleware()
+    _init_emergency_alert()
     _init_conversation_control()
     _init_exit_and_observability()
 

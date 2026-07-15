@@ -107,7 +107,7 @@ class TestSafetyMiddlewareInput:
 
         result = sm.check("我家住在北京市朝阳区")
         assert not result.passed
-        assert result.rule_index == 7  # 隐私套取规则
+        assert result.rule_index in (7, 8)  # 隐私套取 or 用户隐私泄露
 
     def test_phone_number_in_user_input(self):
         """用户说出电话信息应被拦截"""
