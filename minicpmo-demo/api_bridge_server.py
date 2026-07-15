@@ -49,6 +49,40 @@ def _api_headers() -> dict:
     return {"Authorization": f"Bearer {API_KEY}"}
 
 
+# ── System Prompt ──────────────────────────────────────────
+
+_SYSTEM_PROMPT: Optional[str] = None
+
+
+def _load_system_prompt(path: Optional[str]) -> None:
+    """Load compliance System Prompt from YAML file."""
+    global _SYSTEM_PROMPT
+    if not path:
+        return
+    try:
+        import yaml
+        with open(path, "r") as f:
+            config = yaml.safe_load(f)
+        _SYSTEM_PROMPT = config.get("system_prompt", "").strip()
+        if _SYSTEM_PROMPT:
+            logger.info("Loaded system prompt from %s (%d chars)",
+                        path, len(_SYSTEM_PROMPT))
+        else:
+            logger.warning("System prompt file %s has no system_prompt field", path)
+    except FileNotFoundError:
+        logger.warning("System prompt file not found: %s", path)
+    except Exception:
+        logger.exception("Failed to load system prompt from %s", path)
+
+
+def _inject_system_prompt(payload: dict) -> dict:
+    """Inject compliance System Prompt if not already provided."""
+    if _SYSTEM_PROMPT and "system_prompt" not in payload:
+        payload = dict(payload)
+        payload["system_prompt"] = _SYSTEM_PROMPT
+    return payload
+
+
 def _decode_event(raw: str | bytes) -> dict:
     return json.loads(raw) if isinstance(raw, str) else json.loads(raw.decode())
 
@@ -112,7 +146,7 @@ async def _proxy_session(
         raw_init = await worker_ws.recv()
         init_msg = _decode_event(raw_init)
         if init_msg.get("type") == "session.init":
-            payload = dict(init_msg.get("payload", {}))
+            payload = _inject_system_prompt(dict(init_msg.get("payload", {})))
             payload.pop("mode", None)
             await api_ws.send(json.dumps(
                 {"type": "session.init", "payload": payload}
@@ -125,6 +159,8 @@ async def _proxy_session(
                         break
 
         # 4. 双向消息循环
+        _first_input = [True]  # mutable to allow modification in closure
+
         async def worker_to_api():
             async for raw in worker_ws:
                 msg = _decode_event(raw)
@@ -133,7 +169,24 @@ async def _proxy_session(
                     await api_ws.send(json.dumps(msg))
                     return
                 elif mtype == "input.append":
-                    await api_ws.send(json.dumps(msg))
+                    # Inject system prompt into first input message for chat mode
+                    if _first_input[0] and _SYSTEM_PROMPT:
+                        _first_input[0] = False
+                        inp = dict(msg.get("input", {}))
+                        msgs = list(inp.get("messages", []))
+                        if msgs:
+                            msgs.insert(0, {
+                                "role": "system",
+                                "content": _SYSTEM_PROMPT,
+                            })
+                        inp["messages"] = msgs
+                        await api_ws.send(json.dumps({
+                            "type": "input.append",
+                            "input": inp,
+                        }))
+                    else:
+                        _first_input[0] = False
+                        await api_ws.send(json.dumps(msg))
                 else:
                     logger.debug("Dropping unknown: %s", mtype)
 
@@ -413,9 +466,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--api-mode", default=API_MODE, choices=["chat", "audio", "video"],
     )
+    parser.add_argument(
+        "--system-prompt", default=None,
+        help="Path to YAML file with CradleCoach compliance system prompt",
+    )
     args = parser.parse_args()
 
     if args.api_mode:
         os.environ["CRADLECOACH_API_MODE"] = args.api_mode
+    if args.system_prompt:
+        _load_system_prompt(args.system_prompt)
 
     asyncio.run(main(host=args.host, port=args.port))
