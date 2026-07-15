@@ -14,6 +14,7 @@ import logging
 import os
 import signal
 import sys
+import time
 from pathlib import Path
 from typing import Optional
 from urllib.parse import parse_qs, urlparse
@@ -116,6 +117,58 @@ def _check_safety(text: str) -> str:
     return text
 
 
+# ── Silence & Conversation Control ─────────────────────────
+
+_silence_controller = None
+_conversation_flow = None
+LAST_MESSAGE_TIME: float = 0.0
+SILENCE_EXIT_SECONDS = 60
+CONVERSATION_CHECK_INTERVAL = 5.0
+
+
+def _init_conversation_control():
+    """Initialize silence controller and conversation flow."""
+    global _silence_controller, _conversation_flow, LAST_MESSAGE_TIME
+    from gateway_modules.silence_controller import SilenceController
+    from gateway_modules.conversation_flow import ConversationFlow
+
+    def _on_exit_callback():
+        logger.info("SilenceController triggered exit after %ds",
+                    SILENCE_EXIT_SECONDS)
+
+    _silence_controller = SilenceController(exit_manager=_on_exit_callback)
+    _conversation_flow = ConversationFlow()
+    LAST_MESSAGE_TIME = time.time()
+    logger.info("SilenceController + ConversationFlow initialized")
+
+
+def _touch_message_time():
+    """Update last message timestamp."""
+    global LAST_MESSAGE_TIME
+    LAST_MESSAGE_TIME = time.time()
+
+
+def _check_silence() -> Optional[str]:
+    """Check if conversation has been silent too long. Returns exit message if so."""
+    if _silence_controller is None:
+        return None
+    elapsed = time.time() - LAST_MESSAGE_TIME
+    if elapsed >= SILENCE_EXIT_SECONDS:
+        logger.info("Silence timeout: %.0fs — triggering exit", elapsed)
+        return "今天的练习到这里。你刚才很努力！现在去找爸爸妈妈，给他们看看你做到的事。下次见！"
+    return None
+
+
+def _get_conversation_hint() -> str:
+    """Get conversation flow hint for system prompt injection."""
+    if _conversation_flow is None:
+        return ""
+    if _conversation_flow.should_force_statement():
+        return " [下一轮请使用陈述句，不要提问]"
+    hint = _conversation_flow.get_difficulty_hint()
+    return f" {hint}" if hint else ""
+
+
 def _decode_event(raw: str | bytes) -> dict:
     return json.loads(raw) if isinstance(raw, str) else json.loads(raw.decode())
 
@@ -195,9 +248,11 @@ async def _proxy_session(
         _first_input = [True]  # mutable to allow modification in closure
 
         async def worker_to_api():
+            nonlocal _first_input
             async for raw in worker_ws:
                 msg = _decode_event(raw)
                 mtype = msg.get("type", "")
+                _touch_message_time()  # user activity prevents silence timeout
                 if mtype == "session.close":
                     await api_ws.send(json.dumps(msg))
                     return
@@ -230,13 +285,31 @@ async def _proxy_session(
                 if etype in ("session.queued", "session.queue_update",
                              "session.queue_done"):
                     continue
-                # Safety check on text output
+                # Silence check — if silent too long, replace AI output with exit msg
                 if etype == "response.output.delta" and event.get("kind") == "text":
+                    exit_msg = _check_silence()
+                    if exit_msg:
+                        event = {"type": "response.output.delta",
+                                 "kind": "text", "text": exit_msg}
+                        await worker_ws.send(json.dumps(event))
+                        await worker_ws.send(json.dumps(
+                            {"type": "response.done"}))
+                        await worker_ws.send(json.dumps(
+                            {"type": "session.closed"}))
+                        return
+                    # Safety check + conversation hint injection
                     text = event.get("text", "")
                     filtered = _check_safety(text)
+                    hint = _get_conversation_hint()
+                    if hint:
+                        filtered = filtered.rstrip() + hint
+                        conv_flow = _conversation_flow
+                        if conv_flow:
+                            conv_flow.on_user_response(text, True)
                     if filtered != text:
                         event = dict(event)
                         event["text"] = filtered
+                    _touch_message_time()
                 try:
                     await worker_ws.send(json.dumps(event))
                 except websockets.ConnectionClosed:
@@ -517,5 +590,6 @@ if __name__ == "__main__":
     if args.system_prompt:
         _load_system_prompt(args.system_prompt)
     _init_safety_middleware()
+    _init_conversation_control()
 
     asyncio.run(main(host=args.host, port=args.port))
