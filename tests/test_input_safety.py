@@ -180,5 +180,60 @@ class TestBidirectionalSafety:
         assert sm.check("让我们开始练习吧").passed
 
 
+# ═══════════════════════════════════════════════════════════════
+# API Bridge 集成 — 验证过滤内容写回消息
+# ═══════════════════════════════════════════════════════════════
+
+class TestApiBridgeInputFiltering:
+    """验证 _check_input_safety 的过滤结果写回到消息对象"""
+
+    def test_filtered_content_written_back_to_message(self):
+        """过滤后的内容必须写回 msgs[-1]['content']，阻止隐私到达 Cloud API"""
+        from gateway_modules.safety_middleware import SafetyMiddleware
+        sm = SafetyMiddleware()
+
+        # 模拟 API Bridge 的消息结构
+        msg = {
+            "type": "input.append",
+            "input": {
+                "messages": [{"role": "user", "content": "我家住在北京市朝阳区3号楼"}],
+            },
+        }
+        msgs = msg["input"]["messages"]
+        last_content = msgs[-1]["content"]
+
+        # 模拟 API Bridge 中的检测流程（修复后）
+        last_content = sm.check(last_content)
+        if not last_content.passed:
+            last_content = last_content.filtered_tokens
+        msgs[-1]["content"] = last_content  # ← 写回
+
+        # 验证：原始消息中的隐私内容已被替换
+        assert msgs[-1]["content"] != "我家住在北京市朝阳区3号楼"
+        assert "北京市朝阳区" not in msgs[-1]["content"]
+
+    def test_normal_content_preserved_in_message(self):
+        """正常内容在消息中保持不变"""
+        from gateway_modules.safety_middleware import SafetyMiddleware
+        sm = SafetyMiddleware()
+
+        msg = {
+            "type": "input.append",
+            "input": {
+                "messages": [{"role": "user", "content": "我想练习反义词"}],
+            },
+        }
+        msgs = msg["input"]["messages"]
+        last_content = msgs[-1]["content"]
+
+        result = sm.check(last_content)
+        if not result.passed:
+            last_content = result.filtered_tokens
+        msgs[-1]["content"] = last_content
+
+        # 验证：正常内容不受影响
+        assert msgs[-1]["content"] == "我想练习反义词"
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

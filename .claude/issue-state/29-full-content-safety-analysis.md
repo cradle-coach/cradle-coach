@@ -3,6 +3,8 @@
 **日期**: 2026-07-15
 **状态**: 分析完成，待决策后开发
 
+> **⚠️ 方案更新 (2026-07-15)**：第二节中的方案 A（Cloud API listen 事件）在开发前验证阶段证实不可行——Cloud API `kind: "listen"` 事件不含用户 ASR 转录文本（`is_listen: true` 时 `text` 字段为空）。实际采用**文本路径先行**方案：在 duplex/chat 模式的 `input.append` 文本内容上进行检测，语音 ASR 由 Issue #54 跟踪。第三-五节的 listen 事件架构设计保留作为未来参考，实际管线见 `openspec/changes/phase5-bidirectional-safety/design.md`。
+
 ---
 
 ## 一、现状差距分析

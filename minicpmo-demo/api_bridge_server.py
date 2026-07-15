@@ -121,6 +121,9 @@ def _check_safety(text: str) -> str:
 
 _emergency_alert = None
 _pending_emergency_guidance: str = ""
+# NOTE: _pending_emergency_guidance is a module-level global — safe under
+# asyncio cooperative multitasking for single-session usage. Multi-session
+# support would require per-session guidance state (e.g. dict keyed by session_id).
 
 
 def _init_emergency_alert():
@@ -350,9 +353,10 @@ async def _proxy_session(
                                     {"type": "session.closed"}))
                                 return
                             # Check emergency alert on user input
-                            _maybe_emergency_guidance = _check_emergency(last_content)
+                            _check_emergency(last_content)
                             # Check input safety (privacy, hard blocks)
                             last_content = _check_input_safety(last_content)
+                            msgs[-1]["content"] = last_content
                             # Update conversation flow
                             conv_flow = _conversation_flow
                             if conv_flow:
