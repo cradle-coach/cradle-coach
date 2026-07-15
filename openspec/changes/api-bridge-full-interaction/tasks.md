@@ -19,4 +19,21 @@
 - [x] 前端适配
 - [x] Demo 页面
 - [x] 集成测试（5 fast + 1 slow）
-- [ ] 浏览器端验证（需真实 Mic/Camera）
+- [x] 服务器端验证（Python WS 脚本 + Playwright headless Chrome）
+
+## 端到端人工验证（2026-07-14，macOS Chrome）
+
+| 模式 | 结果 | 说明 |
+|------|:--:|------|
+| **Audio Duplex** | ✅ 可用 | 全双工语音交互正常 |
+| **Omni** | ✅ 可用 | 全模态（语音+视频）正常 |
+| Turnbased Chat 文字 | ✅ 可用 | 文字对话正常 |
+| Turnbased Chat 录音 | ❌ 不可用 | Cloud API chat 模式不支持混合音频附件格式 |
+| Mobile 页面 | ❌ 不可用 | mobile-bridge.js 依赖原生 App WebView API，需完整 Gateway |
+| Half Duplex | — 未测 | 非目标模式 |
+
+## 限制说明
+
+- **Turnbased 录音不可用**：Chat 模式通过 `UserContentEditor._startRecording()` 将录音嵌入为 base64 附件，Cloud API chat 模式仅处理 `messages` 数组中的文本，不处理音频附件
+- **Mobile 页面不可用**：`mobile-omni/` 依赖原生 App WebView Bridge，不在 API Bridge 代理范围内
+- **仅需 Audio Duplex + Omni**：后续开发围绕全双工语音和多模态两个核心模式进行
