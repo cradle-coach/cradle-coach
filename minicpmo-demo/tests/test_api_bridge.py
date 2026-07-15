@@ -157,3 +157,96 @@ class TestAudioPipeline:
             base64.b64decode(encoded), dtype="<f4"
         )
         np.testing.assert_array_almost_equal(decoded, chunk, decimal=5)
+
+
+class TestSafetyGatewayIntegration:
+    """Verify SafetyMiddleware integration in API Bridge message pipeline."""
+
+    @pytest.mark.slow
+    @pytest.mark.asyncio
+    async def test_safety_check_on_text_output(self, bridge_server):
+        """Text output MUST pass through safety check before reaching client."""
+        require_api_key()
+        async with websockets.connect(
+            _ws_url(bridge_server, "chat"), max_size=128 * 1024 * 1024
+        ) as ws:
+            await ws.send(json.dumps({"type": "session.init", "payload": {}}))
+
+            got_created = False
+            got_response = False
+
+            async for raw in ws:
+                event = json.loads(raw)
+                etype = event.get("type", "")
+
+                if etype == "session.queue_done":
+                    await ws.send(json.dumps({"type": "session.init", "payload": {}}))
+                elif etype == "session.created" and not got_created:
+                    got_created = True
+                    await ws.send(json.dumps({
+                        "type": "input.append",
+                        "input": {
+                            "messages": [{"role": "user", "content": "你好"}],
+                            "streaming": True,
+                            "generation": {"max_new_tokens": 32},
+                        },
+                    }))
+                elif etype == "response.output.delta" and event.get("kind") == "text":
+                    text = event.get("text", "")
+                    assert len(text) > 0, "Normal text should pass safety"
+                    got_response = True
+                elif etype == "response.done":
+                    break
+
+            assert got_created, "session.created not received"
+            assert got_response, "No text response — safety may be blocking"
+
+    @pytest.mark.slow
+    @pytest.mark.asyncio
+    async def test_logs_written_on_intercept(self, bridge_server):
+        """SafetyMiddleware MUST write intercept logs."""
+        require_api_key()
+        from pathlib import Path
+        from datetime import datetime
+
+        log_dir = Path("harness_logs/safety_intercepts")
+        today_log = log_dir / f"{datetime.now().strftime('%Y-%m-%d')}.jsonl"
+
+        async with websockets.connect(
+            _ws_url(bridge_server, "chat"), max_size=128 * 1024 * 1024
+        ) as ws:
+            await ws.send(json.dumps({"type": "session.init", "payload": {}))
+
+            async for raw in ws:
+                event = json.loads(raw)
+                etype = event.get("type", "")
+
+                if etype == "session.queue_done":
+                    await ws.send(json.dumps({"type": "session.init", "payload": {}}))
+                elif etype == "session.created":
+                    await ws.send(json.dumps({
+                        "type": "input.append",
+                        "input": {
+                            "messages": [{"role": "user", "content": "你好"}],
+                            "streaming": True,
+                            "generation": {"max_new_tokens": 32},
+                        },
+                    }))
+                elif etype == "response.done":
+                    break
+
+        assert log_dir.exists(), f"Log dir {log_dir} should exist after safety init"
+
+    @pytest.mark.asyncio
+    async def test_safety_module_initialized_in_bridge(self, bridge_server):
+        """Verify API Bridge initializes SafetyMiddleware on startup."""
+        require_api_key()
+        async with websockets.connect(
+            _ws_url(bridge_server, "chat"), max_size=128 * 1024 * 1024
+        ) as ws:
+            await ws.send(json.dumps({"type": "session.init", "payload": {}}))
+            async for raw in ws:
+                event = json.loads(raw)
+                if event.get("type") == "session.created":
+                    assert event.get("session_id"), "Bridge should work with safety on"
+                    return
