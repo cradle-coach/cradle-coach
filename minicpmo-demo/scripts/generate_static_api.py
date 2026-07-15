@@ -63,8 +63,6 @@ def generate_apps(output_dir: str) -> None:
             "apps": [
                 {"app_id": "turnbased", "name": "Turnbased Chat",
                  "route": "/turnbased.html"},
-                {"app_id": "half_duplex_audio", "name": "Half Duplex Audio",
-                 "route": "/half-duplex/half_duplex.html"},
                 {"app_id": "audio_duplex", "name": "Audio Duplex",
                  "route": "/audio-duplex/audio_duplex.html"},
                 {"app_id": "omni", "name": "Omni",
