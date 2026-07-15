@@ -19,12 +19,8 @@ const _NAV_SELECTOR = '.nav-links';
 // Apps to hide from the global nav (still reachable by direct route).
 const _NAV_HIDDEN_APP_IDS = new Set(['half_duplex_audio']);
 
-// Map API app_id → i18n key for display name override.
-const _APP_NAME_I18N = {
-    turnbased: 'turnbasedChat',
-    omni: 'omniFullDuplex',
-    audio_duplex: 'audioDuplexTitle',
-};
+// Use app names from /api/apps directly (no i18n overrides).
+const _APP_NAME_I18N = {};
 
 async function _fetchApps() {
     try {
@@ -68,8 +64,8 @@ async function initNav(currentAppId) {
     if (!apps) return null;
 
     if (currentAppId && !apps.find(a => a.app_id === currentAppId)) {
-        window.location.href = '/';
-        return null;
+        console.warn('App not in list, continuing anyway:', currentAppId);
+        // Don't redirect — API Bridge demo serves all apps
     }
 
     _renderNav(apps, currentAppId);

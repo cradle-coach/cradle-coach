@@ -36,3 +36,7 @@ openspec archive <name>          # 归档已完成提案
 2. **创建提案** → `/opsx:propose` 生成 `openspec/changes/<name>/proposal.md`
 3. **执行开发** → `/opsx:apply` 按提案 TDD 实现
 4. **归档** → `/opsx:archive` 将提案移入 `archive/`，涉及的行为变更合并到 `specs/`
+
+### 语言规范
+
+所有 OpenSpec 工件（proposal、design、specs、tasks）必须使用中文撰写。配置见 `config.yaml`。

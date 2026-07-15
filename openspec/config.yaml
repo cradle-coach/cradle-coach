@@ -9,8 +9,13 @@ context: |
 rules:
   proposal:
     - Must reference corresponding GitHub Issue
-    - Must include In Scope / Out of Scope
     - Must include acceptance criteria
+    - All artifacts MUST be written in Chinese (proposal, design, specs, tasks)
   tasks:
     - Must follow TDD order (test before implementation)
     - Each task must be independently verifiable
+  specs:
+    - Each requirement body must contain keyword "MUST" or "SHALL"
+    - Each requirement must have at least one "#### Scenario:" block with WHEN/THEN
+  language:
+    - All OpenSpec artifacts use Chinese (中文)

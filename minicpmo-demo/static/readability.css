@@ -1,0 +1,8 @@
+/* Light theme override for MiniCPM-o-Demo */
+body, html { background: #f5f0eb !important; color: #1c1917 !important; }
+a, a:visited { color: #2563eb !important; }
+a.active, .nav-links a.active { background: #e7e5e4 !important; color: #1c1917 !important; }
+input, textarea, select { background: #fff !important; color: #1c1917 !important; border-color: #d6d3d1 !important; }
+button { background: #e7e5e4 !important; color: #1c1917 !important; border-color: #d6d3d1 !important; }
+code, pre, .log, .panel, .chat-log, #log { background: #fafaf9 !important; color: #292524 !important; }
+.status-badge, .metric, .info, .sub, .subtitle { color: #57534e !important; }

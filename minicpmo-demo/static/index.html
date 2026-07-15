@@ -289,6 +289,7 @@
             .feature-grid { grid-template-columns: 1fr; }
         }
     </style>
+<link rel="stylesheet" href="/static/readability.css">
 </head>
 <body>
     <div class="header">
@@ -447,9 +448,9 @@
     const t = window.I18n?.t || {};
 
     const APP_CARD_META = {
-        turnbased: { css: 'turnbased', icon: '💬', desc: t.turnbasedDesc, nameKey: 'turnbasedChat' },
-        omni:      { css: 'omni',      icon: '🎥', desc: t.omniDesc, nameKey: 'omniFullDuplex' },
-        audio_duplex: { css: 'audio', icon: '🎤', desc: t.audioDuplexDesc, nameKey: 'audioDuplexTitle' },
+        turnbased:    { css: 'turnbased', icon: '💬', desc: t.turnbasedDesc, nameKey: 'turnbasedChat' },
+        omni:         { css: 'omni',      icon: '🎥', desc: t.omniDesc, nameKey: 'omniFullDuplex' },
+        audio_duplex: { css: 'audio',     icon: '🎤', desc: t.audioDuplexDesc, nameKey: 'audioDuplexTitle' },
     };
     const MOBILE_PREVIEW_CARD = {
         route: '/mobile',
