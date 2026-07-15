@@ -12,7 +12,7 @@ rules:
     - Must include acceptance criteria
     - All artifacts MUST be written in Chinese (proposal, design, specs, tasks)
   tasks:
-    - Must follow TDD order (test before implementation)
+    - TDD is mandatory: test commit MUST precede implementation commit in git history. New tests MUST fail before implementation makes them pass
     - Each task must be independently verifiable
   specs:
     - Each requirement body must contain keyword "MUST" or "SHALL"
