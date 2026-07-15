@@ -300,7 +300,7 @@ class TestTrainingManager:
         tm = TrainingManager()
 
         # 模拟刚完成训练
-        tm._last_training_time = time.time()
+        tm._last_training_time = time.monotonic()
         result = tm.should_trigger(context="", emotion="neutral")
         assert not result.trigger
 
@@ -421,7 +421,7 @@ class TestTrainingManager:
 
         tm.start_session()
         # 模拟会话已运行超过 15 分钟
-        tm.session.start_time = time.time() - (tm.SESSION_MAX_MINUTES + 1) * 60
+        tm.session.start_time = time.monotonic() - (tm.SESSION_MAX_MINUTES + 1) * 60
         result = tm.start_game("antonyms", difficulty=2)
         assert result.get("session_expired")
         assert "爸爸妈妈" in result["instructions"]
@@ -434,7 +434,7 @@ class TestTrainingManager:
 
         # 模拟过期会话
         tm.start_session()
-        tm.session.start_time = time.time() - (tm.SESSION_MAX_MINUTES + 1) * 60
+        tm.session.start_time = time.monotonic() - (tm.SESSION_MAX_MINUTES + 1) * 60
 
         # 第一次调用：检测到过期，应自动结束旧会话并开始新会话
         result1 = tm.start_game("antonyms", difficulty=2)
@@ -479,11 +479,8 @@ class TestTrainingManager:
         result = tm.evaluate("antonyms", "小", "小")
         feedback = result["feedback"]
 
-        # _build_feedback 使用 EFFORT_FEEDBACK，特点是"我看到"、"你在"等句式
+        # _build_feedback 使用 EFFORT_FEEDBACK（"我看到"、"你在"等句式），
         # 与游戏引擎反馈（"对啦"、"答对了"、"很好"等）不同
-        # _build_feedback 反馈不在游戏引擎 POSITIVE_FEEDBACK 中
-        from cradle_training.antonyms import AntonymGame
-        game = AntonymGame()
         assert feedback in tm.EFFORT_FEEDBACK, (
             f"evaluate() should use _build_feedback (EFFORT_FEEDBACK), "
             f"got game-engine feedback: {feedback}"

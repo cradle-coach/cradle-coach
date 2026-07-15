@@ -79,6 +79,7 @@ class TrainingManager:
         self.session = TrainingSession()
         self.current_difficulty = 2
         self._last_training_time: float = 0.0
+        self._last_prompt_word: str = ""
         self._games = {
             "antonyms": AntonymGame(),
             "reverse_memory": ReverseMemoryGame(),
@@ -99,15 +100,16 @@ class TrainingManager:
         Returns:
             TriggerResult: 是否触发 + 推荐游戏类型
         """
-        # 情绪检查：负面情绪不触发
-        if emotion in self.NEGATIVE_EMOTIONS:
+        # 情绪检查：负面情绪不触发（子串匹配）
+        emotion_lower = emotion.lower()
+        if any(neg.lower() in emotion_lower for neg in self.NEGATIVE_EMOTIONS):
             return TriggerResult(
                 trigger=False,
                 reason=f"情绪状态不适合训练: {emotion}",
             )
 
         # 间隔检查
-        elapsed = time.time() - self._last_training_time
+        elapsed = time.monotonic() - self._last_training_time
         if elapsed < self.MIN_TRAINING_INTERVAL and self._last_training_time > 0:
             return TriggerResult(
                 trigger=False,
@@ -162,8 +164,9 @@ class TrainingManager:
         if not self.session.active:
             self.start_session()
         elif self._session_expired():
+            closing_msg = self.end_session()
             return {
-                "instructions": self.get_closing_message(),
+                "instructions": closing_msg,
                 "prompt": "",
                 "expected": "",
                 "game_type": game_type,
@@ -265,7 +268,8 @@ class TrainingManager:
         # 构建返回字典
         output = {
             "correct": is_correct,
-            "feedback": result.feedback,
+            "feedback": self._build_feedback(correct=is_correct, game_type=game_type),
+            "game_feedback": result.feedback,
             "game_type": game_type,
         }
         if hasattr(result, "length_score"):
@@ -287,9 +291,9 @@ class TrainingManager:
         """开始训练会话"""
         self.session = TrainingSession(
             active=True,
-            start_time=time.time(),
+            start_time=time.monotonic(),
         )
-        self._last_training_time = time.time()
+        self._last_training_time = time.monotonic()
 
     def end_session(self) -> str:
         """结束训练会话，返回结束语"""
@@ -386,7 +390,7 @@ class TrainingManager:
         """检查会话是否超过最大时长"""
         if not self.session.active:
             return False
-        elapsed_minutes = (time.time() - self.session.start_time) / 60
+        elapsed_minutes = (time.monotonic() - self.session.start_time) / 60
         return elapsed_minutes >= self.SESSION_MAX_MINUTES
 
     def get_available_game_types(self) -> List[str]:
