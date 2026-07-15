@@ -87,19 +87,60 @@ python3 -m pytest tests/ -v
 | §18 — AI 标识与防沉迷 | `compliance_timer.py` / `identity_disclosure.py` | 2 小时提醒 + 5 分钟强制退出；AI 身份首次声明 + 月度提醒 |
 | §19 — 便捷退出 | `exit_manager.py` | 退出关键词立即休眠 + 30 分钟无交互自动休眠 |
 
-## 开发阶段
+## Roadmap
 
-| Phase | 内容 | Issue | 状态 |
-|-------|------|-------|:--:|
-| Phase 0 | 环境搭建 + MiniCPM-o-Demo 云端 API 适配 | [#3](https://github.com/cradle-coach/cradle-coach/issues/3) | ✅ |
-| Phase 1 | 合规人格配置（System Prompt 注入） | [#4](https://github.com/cradle-coach/cradle-coach/issues/4) | ⬜ |
-| Phase 2 | 安全护栏 Gateway 集成 | [#5](https://github.com/cradle-coach/cradle-coach/issues/5) | ⬜ |
-| Phase 3a | 沉默控制 + 对话流集成 | [#6](https://github.com/cradle-coach/cradle-coach/issues/6) | ⬜ |
-| Phase 3b | 退出管理 + 可观测性集成 | [#18](https://github.com/cradle-coach/cradle-coach/issues/18) | ⬜ |
-| Phase 4 | 记忆系统（LanceDB） | [#7](https://github.com/cradle-coach/cradle-coach/issues/7) | ⬜ |
-| Phase 5 | 训练游戏引擎 | [#8](https://github.com/cradle-coach/cradle-coach/issues/8) | ✅ |
-| Phase 6 | 昇腾 NPU 适配 + 材料提交 | [#9](https://github.com/cradle-coach/cradle-coach/issues/9) | ⬜ |
-| — | API Bridge 全交互模式适配 | [#14](https://github.com/cradle-coach/cradle-coach/issues/14) | ⬜ |
+| 时间 | 目标 | 跟踪 |
+|------|------|------|
+| **近期** | 昇腾 NPU 本地推理适配 + 比赛材料提交 | [#9](https://github.com/cradle-coach/cradle-coach/issues/9) |
+| **短期** | 语音输入端 ASR 安全检测 | [#54](https://github.com/cradle-coach/cradle-coach/issues/54) |
+| **短期** | 训练游戏库扩展（新增游戏类型） | — |
+| **中期** | 家长端 App（BLE/WiFi 推送） | — |
+| **中期** | 多模态情绪识别（语音语调 + 面部表情） | — |
+| **持续** | 合规审计 + 测试覆盖率提升 | — |
+
+## 功能特性
+
+### 基础通信
+
+| 特性 | 说明 | 状态 |
+|------|------|:--:|
+| 全双工语音对话 | audio / chat / video 三模式 API Bridge 代理 | ✅ |
+| 云端 API 推理 | OpenBMB MiniCPM-o 4.5 云端推理（Phase 0-5） | ✅ |
+
+### 合规安全
+
+| 特性 | 说明 | 法规 | 状态 |
+|------|------|------|:--:|
+| 内容安全护栏 | AI 输出 + 用户输入双向检测，7 类规则（硬拦截/情感绑定/操纵/社交替代/隐私套取/用户隐私泄露） | §8 | ✅ |
+| 极端情绪预警 | RED/YELLOW 两级检测 + 监护人推送 + 30 分钟安全模式 | §13 | ✅ |
+| 合规退出管理 | 关键词退出 + 沉默超时退出 + 2 小时强制提醒 | §19 | ✅ |
+| AI 身份声明 | 首次对话 + 月度周期性声明「我是一个训练工具」 | §18 | ✅ |
+| 防沉迷计时 | 单次会话 2 小时上限 + 5 分钟冷却 | §18 | ✅ |
+
+### 训练引擎
+
+| 特性 | 说明 | 训练维度 | 状态 |
+|------|------|------|:--:|
+| 反义词游戏 | 35 对反义词，水果例外规则（抑制说反义词冲动） | 反应抑制 | ✅ |
+| 倒序记忆游戏 | 3-6 词序列倒序复述，具体/抽象词分级 | 工作记忆 | ✅ |
+| 情绪猜谜游戏 | 13 个故事情境，6 种基本情绪 + 同义词匹配 | 情绪识别 | ✅ |
+| 故事接龙游戏 | 8 个故事开头，长度 + 连贯性（中文 n-gram）评估 | 认知灵活性 | ✅ |
+| 训练编排 | 触发判断 + 难度自适应（1-5 级）+ 努力导向反馈 + 社交引导结束仪式 | — | ✅ |
+
+### 记忆系统
+
+| 特性 | 说明 | 状态 |
+|------|------|:--:|
+| 用户画像存储 | LanceDB 向量数据库，存储对话历史与训练记录 | ✅ |
+
+### 端侧部署
+
+| 特性 | 说明 | 状态 |
+|------|------|:--:|
+| 昇腾 NPU 推理 | MiniCPM-o 本地推理适配，数据不出设备 | 🚧 |
+| 语音输入 ASR 安全 | 用户语音内容实时安全检测 | 📋 |
+
+> 状态说明：✅ 已完成 &nbsp; 🚧 进行中 &nbsp; 📋 计划中
 
 ## 产品文档
 
