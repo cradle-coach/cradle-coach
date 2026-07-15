@@ -61,6 +61,46 @@ class TestSafetyMiddleware:
         assert result.passed
 
 
+class TestInputSafetyCompliance:
+    """用户输入端安全合规测试"""
+
+    def test_user_privacy_disclosure_blocked(self):
+        """用户说出住址应被拦截（输入端隐私规则）"""
+        from gateway_modules.safety_middleware import SafetyMiddleware
+        sm = SafetyMiddleware()
+
+        result = sm.check("我家住在北京市朝阳区")
+        assert not result.passed
+        assert result.rule_index >= 7
+
+    def test_user_input_hard_block_works(self):
+        """用户输入自伤关键词被硬拦截"""
+        from gateway_modules.safety_middleware import SafetyMiddleware
+        sm = SafetyMiddleware()
+
+        result = sm.check("我想自杀")
+        assert not result.passed
+        assert result.rule_index == 1
+
+    def test_user_emergency_red_detected(self):
+        """EmergencyAlert 检测用户 RED 关键词"""
+        from gateway_modules.emergency_alert import EmergencyAlert, AlertLevel
+        ea = EmergencyAlert()
+
+        event = ea.check("我想死")
+        assert event.level == AlertLevel.RED
+        assert ea.is_in_safe_mode()
+
+    def test_user_emergency_yellow_guidance_only(self):
+        """YELLOW 仅引导不暂停——不进入安全模式"""
+        from gateway_modules.emergency_alert import EmergencyAlert, AlertLevel
+        ea = EmergencyAlert()
+
+        event = ea.check("我很难过")
+        assert event.level == AlertLevel.YELLOW
+        assert not ea.is_in_safe_mode()
+
+
 class TestExitManager:
     """退出管理测试"""
 
