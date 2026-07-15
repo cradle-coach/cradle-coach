@@ -19,8 +19,9 @@ Enforceable Contracts →  .githooks/ + .github/workflows/  (质量门)
 
 1. **在 GitHub 创建 Issue**，使用 `Phase Development Issue` 模板
 2. CI 自动打 `phase/N` 标签（`issue-automation.yml`）
-3. **创建 OpenSpec 提案**：`/opsx:propose "<description>"` 或 `openspec change new <name>`
-   - 提案包含：背景 → In Scope / Out of Scope → 验收标准
+3. **创建 feature 分支**：`git checkout -b feature/<N>-<name> upstream/main`
+4. **在分支上创建 OpenSpec 提案**：`openspec new change <name>`（必须在分支上执行，确保 `.openspec.yaml` 被 commit）
+   - 创建完整 artifacts：proposal.md → design.md → specs/ → tasks.md
    - OpenSpec 提案与 GitHub Issue 一一对应
 
 ### 2. 方案推演（Superpowers: brainstorming）
@@ -82,13 +83,14 @@ gh pr create --repo cradle-coach/cradle-coach --base main --head <fork-owner>:fe
 - [ ] CCPM `.claude/issue-state/` 已更新（last-session + summary）
 - [ ] OpenSpec `changes/` 提案已同步（如涉及 spec 变更）
 
-### 6. 合并与归档
+### 6. 归档与合并
 
 1. `/verification-before-completion` — 最终验证
-2. **归档 OpenSpec 提案**：`/opsx:archive <change-name>` 或 `openspec archive <change-name>`
-3. 如涉及 spec 变更，提案中的 spec delta 会自动合并到 `openspec/specs/`
-4. Squash merge → 删除分支 → 关闭 Issue
+2. **归档 OpenSpec 提案**：`openspec archive <change-name> --yes`（**在提 PR 前完成**，归档 commit 包含在 PR 中）
+3. 如涉及 spec 变更，提案中的 spec delta 会自动同步到 `openspec/specs/`
+4. 创建 PR → squash merge → 删除分支 → 关闭 Issue
 5. 更新 `.claude/epics/` Epic 文件状态
+6. **PR 合并时提案已处于归档状态，无需合并后操作**
 
 ## 各层协作关系
 

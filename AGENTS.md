@@ -24,12 +24,13 @@ python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 |------|-------|------|
 | **Session Start** | — | 读 `.claude/issue-state/` 下当前活跃 Issue 的状态文件，确认上次做到哪了 |
 | **方案推演** | `brainstorming` | Issue 创建后，在「方案推演」区域记录技术路径、设计决策、风险。详见 `docs/engineering/development-workflow.md` |
-| **制定计划** | `writing-plans` | 将方案转化为 TDD 顺序的任务清单。如涉及行为变更，同步创建 `openspec/changes/<date>-<name>.md` 提案 |
+| **创建 OpenSpec 提案** | `openspec new change` | **必须在 feature 分支上执行**（`git checkout -b` 之后）。创建完整的 proposal + design + specs + tasks artifacts。`.openspec.yaml` 必须 commit |
 | **开发执行** | `test-driven-development` | **强制 TDD**：先 commit test 文件 → 确认 FAIL → 再 commit 实现 → 确认 PASS。test 文件必须在 git history 中早于实现文件。合规模块必须在 `tests/test_compliance_regression.py` 加测试 |
 | **自审查** | `/review` 或 `/code-review` | **提 PR 前必须执行**：审查代码正确性、冗余、规范。发现问题必须修复后才能提 PR。不得带着已知问题提交 |
 | **Before Push** | — | `python3 -m pytest tests/ -v` 全部通过。Commit 格式 `type: description` |
-| **Before PR** | `verification-before-completion` | 最终门禁：验收标准 + pytest 全绿 + `.claude/issue-state/` 状态更新 + 自审查通过 |
-| **After Merge** | — | 关闭 Issue，`.claude/issue-state/` 归档，更新 `.claude/epics/` Epic 状态。从最新的 `upstream/main` 开下一个分支 |
+| **归档提案** | `openspec archive` | **提 PR 前必须完成**：运行 `openspec archive <change-name> --yes`。提案归档 + spec 同步应包含在 PR commit 中 |
+| **Before PR** | `verification-before-completion` | 最终门禁：验收标准 + pytest 全绿 + 提案已归档 + `.claude/issue-state/` 更新 + 自审查通过 |
+| **After Merge** | — | 关闭 Issue，`.claude/issue-state/` 归档，更新 `.claude/epics/` Epic 状态。从最新的 `upstream/main` 开下一个分支。**PR 合并时提案已处于归档状态，无需合并后操作** |
 
 ## Superpowers Integration
 
@@ -39,6 +40,7 @@ python3 mock_guardian_server.py --port 8666  # 启动家长端 Mock Server
 - 每个 Phase 必须依序经过 brainstorming → writing-plans → TDD（test 先行） → 自审查 → verification-before-completion
 - **TDD 硬约束**：git history 中 test commit 必须在实现 commit 之前。违反此规则视为未完成
 - **自审查硬约束**：提 PR 前必须运行 `/review` 或 `/code-review`，修复发现的问题。不得未经审查提 PR
+- **OpenSpec 硬约束**：`openspec new change` 必须在 feature 分支上执行。`.openspec.yaml` 必须 commit。`openspec archive` 必须在提 PR 前完成。PR 合并时提案已处于归档状态
 - `/verification-before-completion` 是合并前硬门禁，不得跳过
 - Issue 模板：使用 `.github/ISSUE_TEMPLATE/phase-issue.md`（Superpowers 结构预填充）
 - PR 模板：使用 `.github/PULL_REQUEST_TEMPLATE.md`（Superpowers 确认项 + 验证清单）
