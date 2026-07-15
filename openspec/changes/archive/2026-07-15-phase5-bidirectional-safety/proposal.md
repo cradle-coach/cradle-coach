@@ -1,4 +1,4 @@
-## 背景
+## Why
 
 当前 Phase 2 安全护栏仅检测 AI 文本输出。用户输入（孩子文本/语音）未经安全检测。`EmergencyAlert` 模块已实现但从未接入管线——`check(asr_text)` 在整个代码库中零调用点。`SafetyMiddleware` 的隐私套取检测（rule_index=7）也未在输入端启用。
 
@@ -6,7 +6,7 @@
 
 关联 Issue：#29。关联 Spec：`openspec/specs/safety-gateway-filter/spec.md`。
 
-## 变更内容
+## What Changes
 
 - 更新 `api_bridge_server.py`：在 `worker_to_api()` 的用户文本输入路径增加安全检测
 - 新增加 `_check_emergency()` 函数：调用 `EmergencyAlert.check()` 进行 RED/YELLOW 检测

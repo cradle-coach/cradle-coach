@@ -1,10 +1,8 @@
-# input-safety-detection Specification
+# Spec: 用户输入端安全检测
 
-## Purpose
+对 `input.append` 中的用户文本内容进行极端情绪（EmergencyAlert）和隐私泄露（SafetyMiddleware）检测。
 
-用户文本输入的双向安全检测——对 `input.append` 中的用户文本内容进行极端情绪和隐私泄露检测。
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: 用户输入极端情绪检测
 
